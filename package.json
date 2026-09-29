@@ -19,8 +19,9 @@
   ],
   "scripts": {
     "version-stamp": "node scripts/version-stamp.mjs",
-    "build": "npm run version-stamp && rm -rf build && tsc --skipLibCheck && cp -r src/factory/manifest build/factory/manifest && cp src/google/descriptor.json build/google/descriptor.json",
+    "build": "npm run version-stamp && node scripts/clean-build.mjs clean && tsc --skipLibCheck && node scripts/clean-build.mjs assets",
     "postbuild": "node scripts/check-build.mjs",
+    "prepare": "npm run build",
     "prepublishOnly": "npm run build",
     "type-check": "tsc --noEmit --skipLibCheck && tsc -p tsconfig.test.json --skipLibCheck",
     "lint": "eslint \"src/**/*.ts\"",
