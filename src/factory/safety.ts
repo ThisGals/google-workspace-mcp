@@ -90,20 +90,45 @@ export interface SafetyPolicy {
 // ── Built-in policies ────────────────────────────────────────────────
 
 /**
- * Draft-only email policy — blocks send/reply/forward, allows everything else.
- * Agents can read, search, triage, and label emails but cannot send on behalf of the user.
+ * Whether a send/reply/replyAll call asks for a draft instead of delivery.
+ *
+ * MUST read `draft` exactly the way the gmail handlers in services/gmail/patch.ts do.
+ * If the two ever disagree, the policy could wave through a call as "a draft" that the
+ * handler then sends.
+ */
+function requestsDraft(params: Record<string, unknown>): boolean {
+  return params.draft === true || params.draft === 'true';
+}
+
+/**
+ * Draft-only email policy — blocks send/reply/replyAll unless saved as a draft, and blocks
+ * forward outright. Agents can read, search, triage, label, and draft, but cannot send on
+ * behalf of the user.
+ *
+ * Drafts have to pass. `reply` and `replyAll` with `draft: true` are the only way to put
+ * a draft on the thread it answers; blocking them by operation name left an agent under
+ * this policy able to create nothing but unthreaded drafts, which defeats the purpose
+ * of the policy: drafting for a human to review and send.
+ *
+ * `forward` gets no draft exemption. Its manifest entry does not declare `draft`, and its
+ * handler reports "Message forwarded" either way, so a forward "as a draft" is neither
+ * discoverable nor honestly reported. It stays blocked until both are fixed.
  */
 export const draftOnlyEmail: SafetyPolicy = {
   name: 'draft-only-email',
-  description: 'Block outbound email — agents can read but not send',
+  description: 'Block outbound email — agents can read and draft but not send',
   applies: (service) => service === 'gmail',
   evaluate: (_args, ctx) => {
-    const blocked = ['send', 'reply', 'replyAll', 'forward'];
-    if (blocked.includes(ctx.operation)) {
+    const draftable = ['send', 'reply', 'replyAll'];
+    const isDraft = draftable.includes(ctx.operation) && requestsDraft(ctx.params);
+    if ((draftable.includes(ctx.operation) || ctx.operation === 'forward') && !isDraft) {
       return {
         action: 'block',
         reason: `Operation '${ctx.operation}' is blocked by draft-only email policy. ` +
-          `The agent can read, search, and triage emails but cannot send on behalf of the user.`,
+          `The agent can read, search, and triage emails but cannot send on behalf of the user.` +
+          (ctx.operation === 'forward'
+            ? ''
+            : ` Pass draft: true to save it as a draft for the user to review and send.`),
       };
     }
     return { action: 'allow' };

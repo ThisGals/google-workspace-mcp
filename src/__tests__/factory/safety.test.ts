@@ -35,6 +35,28 @@ describe('draftOnlyEmail', () => {
     expect((await evaluatePolicies([], ctx('forward'), 'gmail')).action).toBe('block');
   });
 
+  // A draft is the whole point of draft-only: reply/replyAll with draft:true are the only
+  // way to put a draft on the thread it answers.
+  it.each(['send', 'reply', 'replyAll'])('allows %s as a draft', async (op) => {
+    const draftCtx = { ...ctx(op), params: { draft: true } };
+    expect((await evaluatePolicies([], draftCtx, 'gmail')).action).toBe('allow');
+  });
+
+  it("accepts draft: 'true' the same way the handler does", async () => {
+    const draftCtx = { ...ctx('reply'), params: { draft: 'true' } };
+    expect((await evaluatePolicies([], draftCtx, 'gmail')).action).toBe('allow');
+  });
+
+  it('blocks forward even with draft: true', async () => {
+    const fwdCtx = { ...ctx('forward'), params: { draft: true } };
+    expect((await evaluatePolicies([], fwdCtx, 'gmail')).action).toBe('block');
+  });
+
+  it.each([false, 'false', 'yes', 1, undefined])('still blocks reply when draft is %s', async (draft) => {
+    const sendCtx = { ...ctx('reply'), params: { draft } };
+    expect((await evaluatePolicies([], sendCtx, 'gmail')).action).toBe('block');
+  });
+
   it('allows search', async () => {
     expect((await evaluatePolicies([], ctx('search'), 'gmail')).action).toBe('allow');
   });
