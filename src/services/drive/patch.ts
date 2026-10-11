@@ -23,7 +23,7 @@ import { call, download, upload } from '../../google/client.js';
 import { lookupMimeType } from '../gmail/mime.js';
 import { formatFileList, formatFileDetail } from '../../server/formatting/markdown.js';
 import { requireString } from '../../server/handlers/validate.js';
-import { ensureWorkspaceDir, resolveWorkspacePath, verifyPathSafety } from '../../executor/workspace.js';
+import { assertNoClobber, ensureWorkspaceDir, resolveWorkspacePath, verifyPathSafety } from '../../executor/workspace.js';
 import { isTextFile, formatFileOutput, buildImageBlock, buildImageBlockFromFile, isImageFile, type FileOutputResult } from '../../executor/file-output.js';
 import type { ServicePatch } from '../../factory/types.js';
 import type { HandlerResponse } from '../../server/formatting/markdown.js';
@@ -336,6 +336,7 @@ export const drivePatch: ServicePatch = {
       if (!wsStatus.valid) throw new Error(`Workspace invalid: ${wsStatus.warning}`);
       const outputPath = resolveWorkspacePath(filename, EXTERNAL);
       await verifyPathSafety(outputPath, EXTERNAL);
+      await assertNoClobber(outputPath);
 
       // Ensure parent directories exist (outputPath may contain subdirectories)
       await fs.mkdir(path.dirname(outputPath), { recursive: true });
@@ -435,6 +436,7 @@ export const drivePatch: ServicePatch = {
       if (!wsStatus.valid) throw new Error(`Workspace invalid: ${wsStatus.warning}`);
       const outputPath = resolveWorkspacePath(filename, EXTERNAL);
       await verifyPathSafety(outputPath, EXTERNAL);
+      await assertNoClobber(outputPath);
 
       // Ensure parent directories exist (outputPath may contain subdirectories)
       await fs.mkdir(path.dirname(outputPath), { recursive: true });

@@ -15,6 +15,8 @@ import {
   checkWorkspaceStatus,
   resolveWorkspacePath,
   verifyPathSafety,
+  assertNoClobber,
+  validateWorkspaceDir,
 } from '../../executor/workspace.js';
 import { handleWorkspace } from '../../server/handlers/workspace.js';
 
@@ -90,6 +92,14 @@ describe('getExtraRoots', () => {
     const result = getExtraRoots();
     expect(result.roots).toEqual([]);
     expect(result.warnings).toHaveLength(2);
+  });
+
+  it('accepts a folder inside a Google Drive mount, but the workspace itself still may not be one', () => {
+    const mount = path.join(base, 'My Drive', '!Projects');
+    fs.mkdirSync(mount, { recursive: true });
+    process.env.WORKSPACE_EXTRA_ROOTS = mount;
+    expect(getExtraRoots()).toEqual({ roots: [mount], warnings: [] });
+    expect(() => validateWorkspaceDir(mount)).toThrow(/Google Drive mount/);
   });
 
   it('ignores an unresolved template variable', () => {
@@ -261,5 +271,24 @@ describe('operations that must NOT reach the extra folders', () => {
 
     await handleWorkspace({ operation: 'move', source: 'a.txt', destination: path.join(clients, 'moved.txt') });
     expect(fs.existsSync(path.join(clients, 'moved.txt'))).toBe(false);
+  });
+});
+
+describe('assertNoClobber', () => {
+  it('lets a write into the workspace replace an earlier file', async () => {
+    const file = path.join(workspace, 'again.txt');
+    fs.writeFileSync(file, 'old');
+    await expect(assertNoClobber(file)).resolves.toBeUndefined();
+  });
+
+  it('allows a new file in an extra folder', async () => {
+    await expect(assertNoClobber(path.join(clients, 'brand-new.pdf'))).resolves.toBeUndefined();
+  });
+
+  it('refuses to replace an existing file in an extra folder', async () => {
+    const file = path.join(clients, 'theirs.pdf');
+    fs.writeFileSync(file, 'precious');
+    await expect(assertNoClobber(file)).rejects.toThrow(/never overwritten/);
+    expect(fs.readFileSync(file, 'utf-8')).toBe('precious');
   });
 });

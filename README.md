@@ -300,7 +300,7 @@ File operations are fenced to the workspace by default. If you file work by clie
 }
 ```
 
-Pick the narrowest folder that holds the places you actually work, such as your clients folder. Your home folder, Documents, Desktop, Downloads, a Google Drive mount, and a bare drive root like `F:\` are all refused, and a folder that does not exist is ignored (and reported by `manage_accounts capabilities`) rather than created.
+Pick the narrowest folder that holds the places you actually work, such as your clients folder. Your home folder, Documents, Desktop, Downloads and a bare drive root like `F:\` are refused (the main workspace also refuses a Google Drive mount, but an approved extra folder may sit inside one, such as `H:\My Drive\Clients`; what you write there syncs to the cloud). Downloads and exports never overwrite an existing file outside the workspace, and a folder that does not exist is ignored (and reported by `manage_accounts capabilities`) rather than created.
 
 Only the operations that need to reach those folders can:
 

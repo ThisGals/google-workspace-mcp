@@ -63,7 +63,7 @@ export function getWorkspaceDir(): string {
  * Validate workspace dir is safe. Throws if it IS a protected directory.
  * Being a subdirectory OF a protected directory is fine (e.g. ~/Documents/mcp-workspace/).
  */
-export function validateWorkspaceDir(dir: string): void {
+export function validateWorkspaceDir(dir: string, options: { allowDriveMount?: boolean } = {}): void {
   const resolved = path.resolve(dir);
 
   // Must not BE a protected directory (subdirectories are OK)
@@ -77,8 +77,11 @@ export function validateWorkspaceDir(dir: string): void {
     }
   }
 
-  // Check for Google Drive mount points
-  for (const pattern of GDRIVE_PATTERNS) {
+  // Check for Google Drive mount points. The workspace itself stays strict: it is where
+  // files are written, moved and deleted freely, which is exactly what a sync client
+  // handles badly. Approved extra folders opt in (allowDriveMount) because they are only
+  // written by upload, download, export and a no-overwrite copy, never deleted or moved.
+  for (const pattern of options.allowDriveMount ? [] : GDRIVE_PATTERNS) {
     if (resolved.toLowerCase().includes(pattern.toLowerCase())) {
       throw new Error(
         `Workspace directory cannot be inside a Google Drive mount (${resolved}) — ` +
@@ -105,7 +108,7 @@ export interface ExtraRoots {
  * The extra folders named by WORKSPACE_EXTRA_ROOTS.
  *
  * Each entry gets the same validation as the workspace itself (no home directory, no
- * Documents/Desktop/Downloads, no Google Drive mount, no filesystem or drive root), and
+ * Documents/Desktop/Downloads, no filesystem or drive root; a Google Drive mount IS allowed here), and
  * must already exist. Existing is deliberate: a mistyped folder must not be quietly
  * created by the first export that targets it. A rejected entry is reported, not fatal;
  * one bad path in the list must not take the whole server down.
@@ -121,7 +124,7 @@ export function getExtraRoots(): ExtraRoots {
   for (const entry of raw.split(path.delimiter).map((s) => s.trim()).filter(Boolean)) {
     const resolved = path.resolve(entry);
     try {
-      validateWorkspaceDir(resolved);
+      validateWorkspaceDir(resolved, { allowDriveMount: true });
       if (!fsSync.statSync(resolved).isDirectory()) {
         throw new Error(`${resolved} is not a folder`);
       }
@@ -329,4 +332,27 @@ export async function verifyPathSafety(filePath: string, scope: PathScope = {}):
       probe = parent;
     }
   }
+}
+
+/**
+ * Refuse to overwrite an existing file that lives OUTSIDE the workspace.
+ *
+ * Inside the workspace, a download or export replacing an earlier one is ordinary. In an
+ * approved extra folder (a client's folder, a synced Drive folder) it would silently
+ * replace someone's real file, so those writes must go to a name that is free.
+ */
+export async function assertNoClobber(filePath: string): Promise<void> {
+  const workspace = path.resolve(getWorkspaceDir());
+  const target = path.resolve(filePath);
+  if (isInside(workspace, target)) return;
+  try {
+    await fs.stat(target);
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return;
+    throw err;
+  }
+  throw new Error(
+    `${target} already exists. Files outside the workspace are never overwritten; ` +
+    'choose a different outputPath, or move the existing file aside yourself.',
+  );
 }

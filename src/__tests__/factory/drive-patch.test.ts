@@ -26,6 +26,7 @@ vi.mock('../../executor/workspace.js', () => ({
   getWorkspaceDir: vi.fn(() => tmpWorkspace),
   resolveWorkspacePath: vi.fn((filename: string) => path.join(tmpWorkspace, filename)),
   verifyPathSafety: vi.fn(async () => {}),
+  assertNoClobber: vi.fn(async () => {}),
 }));
 
 // Mock file-output to avoid reading actual files
