@@ -13,6 +13,12 @@ import * as path from 'node:path';
 import { readFile } from 'node:fs/promises';
 import { basename, isAbsolute } from 'node:path';
 
+/** These call sites may reach the WORKSPACE_EXTRA_ROOTS folders; see executor/workspace.ts. */
+const EXTERNAL = { external: true } as const;
+
+/** What to show for a file the caller named: an absolute path is shown by its file name. */
+const displayName = (given: string): string => (isAbsolute(given) ? basename(given) : given);
+
 import { call, download, upload } from '../../google/client.js';
 import { lookupMimeType } from '../gmail/mime.js';
 import { formatFileList, formatFileDetail } from '../../server/formatting/markdown.js';
@@ -119,11 +125,13 @@ export const drivePatch: ServicePatch = {
       // not be uploaded by the name it was given: `ENOENT: smoke/report.md`. The two
       // halves of the same tool disagreed about what a path meant.
       //
-      // Absolute paths are untouched, so anything uploading from outside the workspace
-      // keeps working.
+      // An ABSOLUTE path is accepted only inside the workspace or a WORKSPACE_EXTRA_ROOTS
+      // folder. It used to be taken as given and then rejected by the workspace fence,
+      // so the comment above promised uploads from outside the workspace and the code
+      // below refused every one of them.
       const given = requireString(params, 'filePath');
-      const filePath = isAbsolute(given) ? given : resolveWorkspacePath(given);
-      await verifyPathSafety(filePath);
+      const filePath = resolveWorkspacePath(given, EXTERNAL);
+      await verifyPathSafety(filePath, EXTERNAL);
       const media = await readFile(filePath);
 
       const metadata: Record<string, unknown> = {
@@ -322,11 +330,12 @@ export const drivePatch: ServicePatch = {
       const filename = String(params.outputPath || meta.name || `file-${fileId}`);
       const mimeType = String(meta.mimeType || '');
 
-      // Ensure workspace and resolve output path
+      // Ensure workspace and resolve output path. `outputPath` may be relative (the
+      // workspace) or an absolute path inside a WORKSPACE_EXTRA_ROOTS folder.
       const wsStatus = await ensureWorkspaceDir();
       if (!wsStatus.valid) throw new Error(`Workspace invalid: ${wsStatus.warning}`);
-      const outputPath = resolveWorkspacePath(filename);
-      await verifyPathSafety(outputPath);
+      const outputPath = resolveWorkspacePath(filename, EXTERNAL);
+      await verifyPathSafety(outputPath, EXTERNAL);
 
       // Ensure parent directories exist (outputPath may contain subdirectories)
       await fs.mkdir(path.dirname(outputPath), { recursive: true });
@@ -338,7 +347,7 @@ export const drivePatch: ServicePatch = {
         supportsAllDrives: true,
       }, outputPath, { account });
 
-      const output = await readWorkspaceFile(outputPath, filename, mimeType);
+      const output = await readWorkspaceFile(outputPath, displayName(filename), mimeType);
 
       return {
         text: formatFileOutput(output),
@@ -420,11 +429,12 @@ export const drivePatch: ServicePatch = {
       const baseName = String(meta.name || `export-${fileId}`).replace(/\.[^.]+$/, '');
       const filename = String(params.outputPath || `${baseName}${ext}`);
 
-      // Ensure workspace and resolve output path
+      // Ensure workspace and resolve output path (relative = workspace; absolute must be
+      // inside a WORKSPACE_EXTRA_ROOTS folder).
       const wsStatus = await ensureWorkspaceDir();
       if (!wsStatus.valid) throw new Error(`Workspace invalid: ${wsStatus.warning}`);
-      const outputPath = resolveWorkspacePath(filename);
-      await verifyPathSafety(outputPath);
+      const outputPath = resolveWorkspacePath(filename, EXTERNAL);
+      await verifyPathSafety(outputPath, EXTERNAL);
 
       // Ensure parent directories exist (outputPath may contain subdirectories)
       await fs.mkdir(path.dirname(outputPath), { recursive: true });
@@ -432,7 +442,7 @@ export const drivePatch: ServicePatch = {
       // Stream the exported bytes straight to disk (ADR-103).
       await download('drive', 'files.export', { fileId, mimeType }, outputPath, { account });
 
-      const output = await readWorkspaceFile(outputPath, filename, mimeType);
+      const output = await readWorkspaceFile(outputPath, displayName(filename), mimeType);
 
       return {
         text: formatFileOutput(output),

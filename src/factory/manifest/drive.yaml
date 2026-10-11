@@ -47,7 +47,7 @@ operations:
     params:
       filePath:
         type: string
-        description: "Local file path to upload"
+        description: "File to upload: a workspace filename, or an absolute path inside the workspace or an approved extra folder"
         required: true
       name:
         type: string
@@ -79,7 +79,7 @@ operations:
         required: true
       outputPath:
         type: string
-        description: "Local path to save the file"
+        description: "Where to save: a workspace filename (default), or an absolute path inside the workspace or an approved extra folder, e.g. a client folder"
     defaults:
       alt: media
       supportsAllDrives: true
@@ -160,7 +160,7 @@ operations:
         required: true
       outputPath:
         type: string
-        description: "Local path to save the file"
+        description: "Where to save: a workspace filename (default), or an absolute path inside the workspace or an approved extra folder, e.g. a client folder"
     defaults:
       supportsAllDrives: true
 

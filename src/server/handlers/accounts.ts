@@ -304,6 +304,12 @@ export async function handleAccounts(params: Record<string, unknown>): Promise<H
       parts.push('## Workspace Directory\n');
       parts.push(`**Path:** ${workspace.path}`);
       parts.push(`**Status:** ${workspace.valid ? 'valid' : 'invalid — ' + workspace.warning}`);
+      if (workspace.extraRoots.length > 0) {
+        parts.push(`**Approved extra folders** (Drive upload/download/export, Gmail attachments, workspace copy): ${workspace.extraRoots.join(', ')}`);
+      } else {
+        parts.push('**Approved extra folders:** none (set WORKSPACE_EXTRA_ROOTS to allow uploads/downloads outside the workspace)');
+      }
+      for (const w of workspace.extraWarnings) parts.push(`**Warning:** ${w}`);
 
       return {
         text: parts.join('\n'),
@@ -314,6 +320,7 @@ export async function handleAccounts(params: Record<string, unknown>): Promise<H
           activePolicies: policies.map(p => p.name),
           workspacePath: workspace.path,
           workspaceValid: workspace.valid,
+          workspaceExtraRoots: workspace.extraRoots,
         },
       };
     }

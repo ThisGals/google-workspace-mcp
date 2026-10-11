@@ -287,6 +287,31 @@ Follows the XDG Base Directory Specification:
 
 Credentials are per-account files holding standard OAuth tokens. No secrets are stored in the project directory.
 
+### Working outside the workspace (client folders)
+
+File operations are fenced to the workspace by default. If you file work by client or project, name the folders that are also allowed in `WORKSPACE_EXTRA_ROOTS` (separate several with `;` on Windows, `:` elsewhere) and restart the server:
+
+```json
+"env": {
+  "GOOGLE_CLIENT_ID": "...",
+  "GOOGLE_CLIENT_SECRET": "...",
+  "WORKSPACE_EXTRA_ROOTS": "F:\\Clients"
+}
+```
+
+Pick the narrowest folder that holds the places you actually work, such as your clients folder. Your home folder, Documents, Desktop, Downloads, a Google Drive mount, and a bare drive root like `F:\` are all refused, and a folder that does not exist is ignored (and reported by `manage_accounts capabilities`) rather than created.
+
+Only the operations that need to reach those folders can:
+
+| Operation | What an absolute path inside an approved folder does |
+|---|---|
+| `manage_drive upload` | uploads that file |
+| `manage_drive download` / `export` | `outputPath` saves the file there |
+| `manage_email` send / draft / reply / forward | `attachments` attaches that file |
+| `manage_workspace copy` | copies one file between the workspace and an approved folder (refuses to overwrite unless `overwrite: true`) |
+
+Everything else, including `manage_workspace delete` and `move`, still sees the workspace alone. A relative path always means workspace-relative.
+
 ## Under the hood
 
 You don't need any of this to use the server. But if you're curious, or you want to add an operation:

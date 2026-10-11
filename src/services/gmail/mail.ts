@@ -35,11 +35,14 @@ export interface SendOptions {
   draft?: boolean;
 }
 
-/** Read workspace attachments, fenced by our own path safety check. */
+/**
+ * Read attachments, fenced by our own path safety check. A name is workspace-relative, or
+ * an absolute path inside a WORKSPACE_EXTRA_ROOTS folder.
+ */
 async function loadAttachments(names: string[]): Promise<MimeAttachment[]> {
   const parts = await Promise.all(names.map(async (name) => {
-    const filePath = resolveWorkspacePath(name);
-    await verifyPathSafety(filePath);          // the workspace fence — attachments cannot escape it
+    const filePath = resolveWorkspacePath(name, { external: true });
+    await verifyPathSafety(filePath, { external: true });   // the fence — attachments cannot escape it
     const data = await readFile(filePath);
     if (data.length === 0) {
       throw new Error(`Attachment "${name}" is empty (0 bytes). Gmail rejects empty parts.`);

@@ -7,6 +7,7 @@
  */
 
 import * as fs from 'node:fs/promises';
+import { constants as fsConstants } from 'node:fs';
 import * as path from 'node:path';
 import { promisify } from 'node:util';
 import { gzip, gunzip } from 'node:zlib';
@@ -254,6 +255,48 @@ export async function handleWorkspace(params: Record<string, unknown>): Promise<
       return {
         text: `Moved: **${source}** → **${destination}**\n\n**Path:** ${destPath}`,
         refs: { source, destination, path: destPath },
+      };
+    }
+
+    case 'copy': {
+      // The one workspace operation that reaches the WORKSPACE_EXTRA_ROOTS folders. It is
+      // how a file that landed in the workspace (a Gmail attachment, say) is filed into a
+      // client's folder, and how a file in one is brought back for upload. It copies and
+      // never removes: move and delete stay inside the workspace on purpose, so widening
+      // the fence for "put it there" does not also widen it for "destroy it".
+      const source = params.source as string;
+      const destination = params.destination as string;
+      if (!source) throw new Error('source is required');
+      if (!destination) throw new Error('destination is required');
+
+      const external = { external: true } as const;
+      const srcPath = resolveWorkspacePath(source, external);
+      const destPath = resolveWorkspacePath(destination, external);
+      await verifyPathSafety(srcPath, external);
+      await verifyPathSafety(destPath, external);
+
+      const srcStat = await fs.stat(srcPath);
+      if (!srcStat.isFile()) {
+        throw new Error(`"${source}" is not a file. copy handles single files, not folders.`);
+      }
+
+      // Never overwrite quietly: the destination may be someone's client folder.
+      const overwrite = params.overwrite === true;
+      await fs.mkdir(path.dirname(destPath), { recursive: true });
+      try {
+        await fs.copyFile(srcPath, destPath, overwrite ? 0 : fsConstants.COPYFILE_EXCL);
+      } catch (err) {
+        if ((err as NodeJS.ErrnoException).code === 'EEXIST') {
+          throw new Error(
+            `"${destination}" already exists. Pass overwrite: true to replace it, or pick another name.`,
+          );
+        }
+        throw err;
+      }
+
+      return {
+        text: `Copied: **${source}** → **${destination}** (${srcStat.size} bytes)\n\n**Path:** ${destPath}`,
+        refs: { source, destination, path: destPath, size: srcStat.size },
       };
     }
 
