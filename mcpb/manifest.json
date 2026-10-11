@@ -65,6 +65,10 @@
       "description": "Read and write Google Docs documents"
     },
     {
+      "name": "manage_slides",
+      "description": "Read, create and edit Google Slides presentations: slides, text, text boxes, images, speaker notes, and a raw batchUpdate"
+    },
+    {
       "name": "manage_tasks",
       "description": "Manage task lists and tasks"
     },

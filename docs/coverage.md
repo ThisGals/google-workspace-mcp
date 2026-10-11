@@ -8,7 +8,7 @@ That page is generated from Google's [Discovery documents](https://developers.go
 
 ## Why a subset, and not everything?
 
-Because an agent has to *choose* among these, and every method it must consider is a method it can pick wrongly. A tool exposing all 257 methods is not more capable than one exposing 95 — it is harder to use correctly, and the descriptions alone would burn more context than most conversations can spare.
+Because an agent has to *choose* among these, and every method it must consider is a method it can pick wrongly. A tool exposing all 268 methods is not more capable than one exposing 111 — it is harder to use correctly, and the descriptions alone would burn more context than most conversations can spare.
 
 Most of what's uncovered is genuinely not agent work: domain administration, delegation and forwarding settings, per-label colour management, push-notification watch channels, batch-import endpoints. The covered slice is the "do useful work in a conversation" set.
 
@@ -18,7 +18,7 @@ But that judgement was made without you, and it may be wrong for what you're doi
 
 ## Whole APIs we don't touch yet
 
-Beyond the eight APIs above, Google publishes others this server does not target at all — **Chat, Slides and Forms**, listed under [Not targeted yet](api-surface.md#not-targeted-yet) with the same per-method Request links.
+Beyond the nine APIs above, Google publishes others this server does not target at all — **Chat and Forms**, listed under [Not targeted yet](api-surface.md#not-targeted-yet) with the same per-method Request links.
 
 They are listed rather than quietly omitted because *not targeted* is a decision, and it was made without you. They are not equally easy, and the difference is worth knowing before you ask:
 

@@ -208,6 +208,31 @@ const suggestions: Record<string, Record<string, NextStep[]>> = {
       { description: 'Edit content', tool: 'manage_scratchpad', example: { operation: 'replace_lines', scratchpadId: '<scratchpadId>', startLine: 1, endLine: 1, content: '<new text>' } },
     ],
   },
+  slides: {
+    get: [
+      { description: 'See a slide as an image', tool: 'manage_slides', example: { operation: 'viewSlide', email: '<email>', presentationId: '<presentationId>', slideNumber: 1 } },
+      { description: 'Change the text of an element', tool: 'manage_slides', example: { operation: 'setText', email: '<email>', presentationId: '<presentationId>', objectId: '<objectId>', text: '<new text>' } },
+      { description: 'Add a slide', tool: 'manage_slides', example: { operation: 'addSlide', email: '<email>', presentationId: '<presentationId>', layout: 'TITLE_AND_BODY', title: '<title>', body: '<body>' } },
+    ],
+    create: [
+      { description: 'Add a slide', tool: 'manage_slides', example: { operation: 'addSlide', email: '<email>', presentationId: '<presentationId>', layout: 'TITLE_AND_BODY', title: '<title>', body: '<body>' } },
+      { description: 'Read the deck outline', tool: 'manage_slides', example: { operation: 'get', email: '<email>', presentationId: '<presentationId>' } },
+    ],
+    addSlide: [
+      { description: 'Fill or change an element', tool: 'manage_slides', example: { operation: 'setText', email: '<email>', presentationId: '<presentationId>', objectId: '<placeholder id>', text: '<text>' } },
+      { description: 'Add a text box', tool: 'manage_slides', example: { operation: 'addTextBox', email: '<email>', presentationId: '<presentationId>', pageObjectId: '<slideId>', text: '<text>' } },
+      { description: 'Check how it looks', tool: 'manage_slides', example: { operation: 'viewSlide', email: '<email>', presentationId: '<presentationId>', pageObjectId: '<slideId>' } },
+    ],
+    setText: [
+      { description: 'Check how it looks', tool: 'manage_slides', example: { operation: 'viewSlide', email: '<email>', presentationId: '<presentationId>', slideNumber: 1 } },
+    ],
+    addTextBox: [
+      { description: 'Check how it looks', tool: 'manage_slides', example: { operation: 'viewSlide', email: '<email>', presentationId: '<presentationId>', pageObjectId: '<pageObjectId>' } },
+    ],
+    addImage: [
+      { description: 'Check how it looks', tool: 'manage_slides', example: { operation: 'viewSlide', email: '<email>', presentationId: '<presentationId>', pageObjectId: '<pageObjectId>' } },
+    ],
+  },
 };
 
 /**

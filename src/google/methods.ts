@@ -206,7 +206,7 @@ export type GmailMethod =
   | 'users.threads.untrash'
   | 'users.watch';
 
-/** 18 methods declared by Google for meet v2. */
+/** 24 methods declared by Google for meet v2. */
 export type MeetMethod =
   | 'conferenceRecords.get'
   | 'conferenceRecords.list'
@@ -225,6 +225,12 @@ export type MeetMethod =
   | 'spaces.create'
   | 'spaces.endActiveConference'
   | 'spaces.get'
+  | 'spaces.members.batchUpdate'
+  | 'spaces.members.create'
+  | 'spaces.members.delete'
+  | 'spaces.members.get'
+  | 'spaces.members.list'
+  | 'spaces.members.patch'
   | 'spaces.patch';
 
 /** 24 methods declared by Google for people v1. */
@@ -274,6 +280,14 @@ export type SheetsMethod =
   | 'spreadsheets.values.get'
   | 'spreadsheets.values.update';
 
+/** 5 methods declared by Google for slides v1. */
+export type SlidesMethod =
+  | 'presentations.batchUpdate'
+  | 'presentations.create'
+  | 'presentations.get'
+  | 'presentations.pages.get'
+  | 'presentations.pages.getThumbnail';
+
 /** 14 methods declared by Google for tasks v1. */
 export type TasksMethod =
   | 'tasklists.delete'
@@ -300,6 +314,7 @@ export type GoogleService =
   | 'meet'
   | 'people'
   | 'sheets'
+  | 'slides'
   | 'tasks';
 
 /** service -> the methods it declares. Indexing this is what makes `call()` safe. */
@@ -311,5 +326,6 @@ export interface ServiceMethods {
   meet: MeetMethod;
   people: PeopleMethod;
   sheets: SheetsMethod;
+  slides: SlidesMethod;
   tasks: TasksMethod;
 }

@@ -265,9 +265,10 @@ describe('every manifest service is in the scope map', () => {
     const manifest = Object.keys(loadManifest().services).sort();
     const mapped = Object.keys(SERVICE_SCOPE_MAP).sort();
 
-    // `slides` is mapped and has no manifest yet — presentations.batchUpdate is an open
-    // coverage gap (issue #151). Named here so adding it is a deliberate act.
-    expect(mapped.filter((s) => s !== 'slides')).toEqual(manifest);
+    // Every mapped service has a manifest. `slides` used to be the one exception (mapped,
+    // no manifest, issue #151); it no longer is, and this assertion is what keeps the next
+    // service from becoming one quietly.
+    expect(mapped).toEqual(manifest);
     expect(Object.keys(SERVICE_SCOPE_MAP_READONLY).sort()).toEqual(mapped);
   });
 });

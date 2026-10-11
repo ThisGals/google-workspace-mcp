@@ -11,6 +11,7 @@ import { meetPatch } from '../services/meet/patch.js';
 import { sheetsPatch } from '../services/sheets/patch.js';
 import { tasksPatch } from '../services/tasks/patch.js';
 import { contactsPatch } from '../services/contacts/patch.js';
+import { slidesPatch } from '../services/slides/patch.js';
 import type { ServicePatch } from './types.js';
 
 export const patches: Record<string, ServicePatch> = {
@@ -22,4 +23,5 @@ export const patches: Record<string, ServicePatch> = {
   sheets: sheetsPatch,
   tasks: tasksPatch,
   contacts: contactsPatch,
+  slides: slidesPatch,
 };

@@ -85,6 +85,7 @@ const SERVICE_VERSIONS = {
   gmail: 'v1', drive: 'v3', calendar: 'v3', docs: 'v1',
   sheets: 'v4', tasks: 'v1', meet: 'v2',
   people: 'v1',
+  slides: 'v1',
 };
 
 /**

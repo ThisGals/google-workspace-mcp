@@ -1,0 +1,229 @@
+tool_name: manage_slides
+description: "Read, create and edit Google Slides presentations: slides, text, text boxes, images, speaker notes, plus a raw batchUpdate for anything else."
+requires_email: true
+google_service: slides
+operations:
+
+  # Every operation here is a custom handler (src/services/slides/patch.ts). Slides is
+  # almost entirely `presentations.batchUpdate`, a single method whose request body is a
+  # list of typed requests, so there is no per-operation Google method to point a bare
+  # resource op at. `resource` still names the method each one ends in, because the
+  # account-access policy reads it to decide whether a read-only account may run it.
+  #
+  # Every param name carries ONE description covering all of its operations. The schema
+  # keeps the first declaration of a name and a test fails on disagreement.
+
+  get:
+    type: detail
+    description: "read a presentation as an outline: every slide, its layout, each element's object ID and text, and speaker notes. Scope to one slide with pageObjectId or slideNumber."
+    resource: presentations.get
+    params:
+      presentationId:
+        type: string
+        description: "Presentation ID: the long id in the slides URL, between /d/ and /edit"
+        required: true
+      pageObjectId:
+        type: string
+        description: "Object ID of one slide, as `get` prints it. Narrows `get` to that slide; on `viewSlide`, `addTextBox`, `addImage` and `setNotes`, the slide to act on."
+      slideNumber:
+        type: number
+        description: "Slide position counting from 1, an alternative to pageObjectId on `get`, `viewSlide`, `addTextBox`, `addImage` and `setNotes`. If both are given, pageObjectId wins."
+
+  create:
+    type: action
+    description: "create a new, empty presentation"
+    resource: presentations.create
+    params:
+      title:
+        type: string
+        description: "Text. On `create`, the presentation title (default 'Untitled presentation'). On `addSlide`, text for the new slide's title placeholder."
+
+  viewSlide:
+    type: detail
+    description: "see one slide as an image, to check layout and design after editing"
+    resource: presentations.pages.getThumbnail
+    params:
+      presentationId:
+        type: string
+        description: "Presentation ID: the long id in the slides URL, between /d/ and /edit"
+        required: true
+      pageObjectId:
+        type: string
+        description: "Object ID of one slide, as `get` prints it. Narrows `get` to that slide; on `viewSlide`, `addTextBox`, `addImage` and `setNotes`, the slide to act on."
+      slideNumber:
+        type: number
+        description: "Slide position counting from 1, an alternative to pageObjectId on `get`, `viewSlide`, `addTextBox`, `addImage` and `setNotes`. If both are given, pageObjectId wins."
+      size:
+        type: string
+        description: "Image size for `viewSlide`: SMALL (200px wide), MEDIUM (800px, default) or LARGE (1600px)"
+        enum: [SMALL, MEDIUM, LARGE]
+
+  addSlide:
+    type: action
+    description: "add a slide with a layout, optionally filling its title and body placeholders"
+    resource: presentations.batchUpdate
+    params:
+      presentationId:
+        type: string
+        description: "Presentation ID: the long id in the slides URL, between /d/ and /edit"
+        required: true
+      layout:
+        type: string
+        description: "Built-in layout for `addSlide` (default TITLE_AND_BODY). Not every layout has every placeholder: TITLE has a title and subtitle, TITLE_AND_BODY a title and body, TITLE_ONLY just a title, BLANK nothing."
+        enum: [BLANK, CAPTION_ONLY, TITLE, TITLE_AND_BODY, TITLE_AND_TWO_COLUMNS, TITLE_ONLY, SECTION_HEADER, SECTION_TITLE_AND_DESCRIPTION, ONE_COLUMN_TEXT, MAIN_POINT, BIG_NUMBER]
+      layoutId:
+        type: string
+        description: "Object ID of one of this deck's own layouts (listed by `get`), for decks built from a custom template. Overrides `layout`."
+      insertionIndex:
+        type: number
+        description: "Where the new slide goes, counting from 0 (default: the end of the deck)"
+      title:
+        type: string
+        description: "Text. On `create`, the presentation title (default 'Untitled presentation'). On `addSlide`, text for the new slide's title placeholder."
+      body:
+        type: string
+        description: "Text for the new slide's body placeholder (or subtitle, on layouts that have one instead) on `addSlide`"
+
+  setText:
+    type: action
+    description: "replace ALL the text in one shape or text box (find its objectId with get)"
+    resource: presentations.batchUpdate
+    params:
+      presentationId:
+        type: string
+        description: "Presentation ID: the long id in the slides URL, between /d/ and /edit"
+        required: true
+      objectId:
+        type: string
+        description: "Object ID of the shape or text box whose text `setText` replaces, as `get` prints it"
+        required: true
+      text:
+        type: string
+        description: "Text. On `setText` and `addTextBox`, the text to put in the shape (an empty string clears it); on `setNotes`, the speaker notes (an empty string clears them)."
+        required: true
+
+  replaceText:
+    type: action
+    description: "find and replace text across the whole deck, or on chosen slides"
+    resource: presentations.batchUpdate
+    params:
+      presentationId:
+        type: string
+        description: "Presentation ID: the long id in the slides URL, between /d/ and /edit"
+        required: true
+      findText:
+        type: string
+        description: "Text to find"
+        required: true
+      replaceWith:
+        type: string
+        description: "Replacement text (an empty string deletes the matches)"
+        required: true
+      matchCase:
+        type: boolean
+        description: "Case-sensitive match (default: true)"
+        default: true
+      pageObjectIds:
+        type: string
+        description: "Limit `replaceText` to these slides: comma-separated object IDs (default: every slide)"
+
+  addTextBox:
+    type: action
+    description: "add a text box to a slide at a position and size in points"
+    resource: presentations.batchUpdate
+    params:
+      presentationId:
+        type: string
+        description: "Presentation ID: the long id in the slides URL, between /d/ and /edit"
+        required: true
+      pageObjectId:
+        type: string
+        description: "Object ID of one slide, as `get` prints it. Narrows `get` to that slide; on `viewSlide`, `addTextBox`, `addImage` and `setNotes`, the slide to act on."
+      slideNumber:
+        type: number
+        description: "Slide position counting from 1, an alternative to pageObjectId on `get`, `viewSlide`, `addTextBox`, `addImage` and `setNotes`. If both are given, pageObjectId wins."
+      text:
+        type: string
+        description: "Text. On `setText` and `addTextBox`, the text to put in the shape (an empty string clears it); on `setNotes`, the speaker notes (an empty string clears them)."
+        required: true
+      x:
+        type: number
+        description: "Distance from the slide's left edge, in points. A default 16:9 slide is 720 x 405 points. `addTextBox` defaults to 50; on `addImage`, leaving x and y out places the image at the top left."
+      y:
+        type: number
+        description: "Distance from the slide's top edge, in points. `addTextBox` defaults to 50; on `addImage`, leaving x and y out places the image at the top left."
+      width:
+        type: number
+        description: "Width in points. `addTextBox` defaults to 400. On `addImage`, give BOTH width and height to size the image, or neither to let Google fit it to the slide."
+      height:
+        type: number
+        description: "Height in points. `addTextBox` defaults to 100. On `addImage`, give BOTH width and height to size the image, or neither to let Google fit it to the slide."
+      fontSize:
+        type: number
+        description: "Font size in points for the text `addTextBox` creates (default: the deck's default, usually 18)"
+
+  addImage:
+    type: action
+    description: "add an image from a public URL to a slide"
+    resource: presentations.batchUpdate
+    params:
+      presentationId:
+        type: string
+        description: "Presentation ID: the long id in the slides URL, between /d/ and /edit"
+        required: true
+      pageObjectId:
+        type: string
+        description: "Object ID of one slide, as `get` prints it. Narrows `get` to that slide; on `viewSlide`, `addTextBox`, `addImage` and `setNotes`, the slide to act on."
+      slideNumber:
+        type: number
+        description: "Slide position counting from 1, an alternative to pageObjectId on `get`, `viewSlide`, `addTextBox`, `addImage` and `setNotes`. If both are given, pageObjectId wins."
+      imageUrl:
+        type: string
+        description: "Public https URL of a PNG, JPEG or GIF under 50 MB. Google fetches it, so a private or login-protected URL fails."
+        required: true
+      x:
+        type: number
+        description: "Distance from the slide's left edge, in points. A default 16:9 slide is 720 x 405 points. `addTextBox` defaults to 50; on `addImage`, leaving x and y out places the image at the top left."
+      y:
+        type: number
+        description: "Distance from the slide's top edge, in points. `addTextBox` defaults to 50; on `addImage`, leaving x and y out places the image at the top left."
+      width:
+        type: number
+        description: "Width in points. `addTextBox` defaults to 400. On `addImage`, give BOTH width and height to size the image, or neither to let Google fit it to the slide."
+      height:
+        type: number
+        description: "Height in points. `addTextBox` defaults to 100. On `addImage`, give BOTH width and height to size the image, or neither to let Google fit it to the slide."
+
+  setNotes:
+    type: action
+    description: "set the speaker notes on a slide, replacing any that are there"
+    resource: presentations.batchUpdate
+    params:
+      presentationId:
+        type: string
+        description: "Presentation ID: the long id in the slides URL, between /d/ and /edit"
+        required: true
+      pageObjectId:
+        type: string
+        description: "Object ID of one slide, as `get` prints it. Narrows `get` to that slide; on `viewSlide`, `addTextBox`, `addImage` and `setNotes`, the slide to act on."
+      slideNumber:
+        type: number
+        description: "Slide position counting from 1, an alternative to pageObjectId on `get`, `viewSlide`, `addTextBox`, `addImage` and `setNotes`. If both are given, pageObjectId wins."
+      text:
+        type: string
+        description: "Text. On `setText` and `addTextBox`, the text to put in the shape (an empty string clears it); on `setNotes`, the speaker notes (an empty string clears them)."
+        required: true
+
+  batchUpdate:
+    type: action
+    description: "send raw Slides API requests: formatting, duplicating, moving or deleting slides and elements, tables, shapes, anything the other operations don't cover"
+    resource: presentations.batchUpdate
+    params:
+      presentationId:
+        type: string
+        description: "Presentation ID: the long id in the slides URL, between /d/ and /edit"
+        required: true
+      requests:
+        type: string
+        description: "JSON array of Slides API requests, e.g. [{\"deleteObject\":{\"objectId\":\"g123\"}}]. Applied together: if one is invalid, none are applied. Reference: https://developers.google.com/workspace/slides/api/reference/rest/v1/presentations/request"
+        required: true

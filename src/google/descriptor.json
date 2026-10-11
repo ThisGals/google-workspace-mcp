@@ -466,6 +466,7 @@
             "https://www.googleapis.com/auth/calendar.events.public.readonly",
             "https://www.googleapis.com/auth/calendar.events.readonly",
             "https://www.googleapis.com/auth/calendar.readonly",
+            "https://www.googleapis.com/auth/calendar.settings",
             "https://www.googleapis.com/auth/calendar.settings.readonly"
           ]
         },
@@ -1026,6 +1027,7 @@
           "scopes": [
             "https://www.googleapis.com/auth/calendar",
             "https://www.googleapis.com/auth/calendar.readonly",
+            "https://www.googleapis.com/auth/calendar.settings",
             "https://www.googleapis.com/auth/calendar.settings.readonly"
           ]
         },
@@ -1046,6 +1048,7 @@
           "scopes": [
             "https://www.googleapis.com/auth/calendar",
             "https://www.googleapis.com/auth/calendar.readonly",
+            "https://www.googleapis.com/auth/calendar.settings",
             "https://www.googleapis.com/auth/calendar.settings.readonly"
           ]
         },
@@ -1066,6 +1069,7 @@
           "scopes": [
             "https://www.googleapis.com/auth/calendar",
             "https://www.googleapis.com/auth/calendar.readonly",
+            "https://www.googleapis.com/auth/calendar.settings",
             "https://www.googleapis.com/auth/calendar.settings.readonly"
           ]
         }
@@ -1081,6 +1085,17 @@
           "TYPE_UNSPECIFIED",
           "PAGE_NUMBER",
           "PAGE_COUNT"
+        ],
+        "BatchUpdateDocumentResponse.commentUpdateState": [
+          "COMMENT_UPDATE_STATE_UNSPECIFIED",
+          "NO_UPDATES_REQUESTED",
+          "ALL_SAVED",
+          "ALL_FAILED_UNKNOWN_REASON"
+        ],
+        "CommentThread.status": [
+          "STATUS_UNSPECIFIED",
+          "OPEN",
+          "RESOLVED"
         ],
         "CreateFooterRequest.type": [
           "HEADER_FOOTER_TYPE_UNSPECIFIED",
@@ -1125,6 +1140,12 @@
         "Dimension.unit": [
           "UNIT_UNSPECIFIED",
           "PT"
+        ],
+        "Document.commentsViewMode": [
+          "COMMENTS_VIEW_MODE_UNSPECIFIED",
+          "COMMENTS_VIEW_MODE_DEFAULT_FOR_CURRENT_ACCESS",
+          "COMMENTS_VIEW_MODE_OMITTED",
+          "COMMENTS_VIEW_MODE_INCLUDED"
         ],
         "Document.suggestionsViewMode": [
           "DEFAULT_FOR_CURRENT_ACCESS",
@@ -1236,6 +1257,18 @@
           "IN_FRONT_OF_TEXT",
           "BEHIND_TEXT"
         ],
+        "Post.commentAction": [
+          "COMMENT_ACTION_TYPE_UNSPECIFIED",
+          "NO_COMMENT_ACTION_CHANGE",
+          "RESOLVE",
+          "REOPEN"
+        ],
+        "Post.suggestionAction": [
+          "SUGGESTION_ACTION_TYPE_UNSPECIFIED",
+          "NO_SUGGESTION_ACTION_CHANGE",
+          "ACCEPT",
+          "REJECT"
+        ],
         "ReplaceImageRequest.imageReplaceMethod": [
           "IMAGE_REPLACE_METHOD_UNSPECIFIED",
           "CENTER_CROP"
@@ -1254,6 +1287,12 @@
           "SECTION_TYPE_UNSPECIFIED",
           "CONTINUOUS",
           "NEXT_PAGE"
+        ],
+        "SuggestionThread.status": [
+          "STATUS_UNSPECIFIED",
+          "OPEN",
+          "ACCEPTED",
+          "REJECTED"
         ],
         "TabStop.alignment": [
           "TAB_STOP_ALIGNMENT_UNSPECIFIED",
@@ -1284,6 +1323,11 @@
           "NONE",
           "SUPERSCRIPT",
           "SUBSCRIPT"
+        ],
+        "WriteControl.writeMode": [
+          "WRITE_MODE_UNSPECIFIED",
+          "EDIT",
+          "SUGGEST"
         ]
       },
       "globalParameters": {
@@ -1350,6 +1394,15 @@
         "documents.get": {
           "httpMethod": "GET",
           "parameters": {
+            "commentsViewMode": {
+              "enum": [
+                "COMMENTS_VIEW_MODE_UNSPECIFIED",
+                "COMMENTS_VIEW_MODE_DEFAULT_FOR_CURRENT_ACCESS",
+                "COMMENTS_VIEW_MODE_OMITTED",
+                "COMMENTS_VIEW_MODE_INCLUDED"
+              ],
+              "location": "query"
+            },
             "documentId": {
               "location": "path",
               "required": true
@@ -2096,6 +2149,9 @@
         "files.copy": {
           "httpMethod": "POST",
           "parameters": {
+            "copyComments": {
+              "location": "query"
+            },
             "enforceSingleParent": {
               "location": "query"
             },
@@ -4700,6 +4756,10 @@
     "meet": {
       "discoveryUrl": "https://meet.googleapis.com/$discovery/rest?version=v2",
       "enums": {
+        "Member.role": [
+          "ROLE_UNSPECIFIED",
+          "COHOST"
+        ],
         "ModerationRestrictions.chatRestriction": [
           "RESTRICTION_TYPE_UNSPECIFIED",
           "HOSTS_ONLY",
@@ -5088,6 +5148,95 @@
             "https://www.googleapis.com/auth/meetings.space.created",
             "https://www.googleapis.com/auth/meetings.space.readonly",
             "https://www.googleapis.com/auth/meetings.space.settings"
+          ]
+        },
+        "spaces.members.batchUpdate": {
+          "httpMethod": "POST",
+          "parameters": {
+            "parent": {
+              "location": "path",
+              "required": true
+            }
+          },
+          "path": "v2/{+parent}/members:batchUpdate",
+          "scopes": [
+            "https://www.googleapis.com/auth/meetings.space.created"
+          ]
+        },
+        "spaces.members.create": {
+          "httpMethod": "POST",
+          "parameters": {
+            "parent": {
+              "location": "path",
+              "required": true
+            }
+          },
+          "path": "v2/{+parent}/members",
+          "scopes": [
+            "https://www.googleapis.com/auth/meetings.space.created"
+          ]
+        },
+        "spaces.members.delete": {
+          "httpMethod": "DELETE",
+          "parameters": {
+            "name": {
+              "location": "path",
+              "required": true
+            }
+          },
+          "path": "v2/{+name}",
+          "scopes": [
+            "https://www.googleapis.com/auth/meetings.space.created"
+          ]
+        },
+        "spaces.members.get": {
+          "httpMethod": "GET",
+          "parameters": {
+            "name": {
+              "location": "path",
+              "required": true
+            }
+          },
+          "path": "v2/{+name}",
+          "scopes": [
+            "https://www.googleapis.com/auth/meetings.space.created",
+            "https://www.googleapis.com/auth/meetings.space.readonly"
+          ]
+        },
+        "spaces.members.list": {
+          "httpMethod": "GET",
+          "parameters": {
+            "pageSize": {
+              "location": "query"
+            },
+            "pageToken": {
+              "location": "query"
+            },
+            "parent": {
+              "location": "path",
+              "required": true
+            }
+          },
+          "path": "v2/{+parent}/members",
+          "scopes": [
+            "https://www.googleapis.com/auth/meetings.space.created",
+            "https://www.googleapis.com/auth/meetings.space.readonly"
+          ]
+        },
+        "spaces.members.patch": {
+          "httpMethod": "PATCH",
+          "parameters": {
+            "name": {
+              "location": "path",
+              "required": true
+            },
+            "updateMask": {
+              "location": "query"
+            }
+          },
+          "path": "v2/{+name}",
+          "scopes": [
+            "https://www.googleapis.com/auth/meetings.space.created"
           ]
         },
         "spaces.patch": {
@@ -5851,6 +6000,18 @@
           "UNFORMATTED_VALUE",
           "FORMULA"
         ],
+        "BatchUpdateSpreadsheetRequest.commentsViewMode": [
+          "COMMENTS_VIEW_MODE_UNSPECIFIED",
+          "COMMENTS_VIEW_MODE_DEFAULT_FOR_CURRENT_ACCESS",
+          "COMMENTS_VIEW_MODE_OMITTED",
+          "COMMENTS_VIEW_MODE_INCLUDED"
+        ],
+        "BatchUpdateSpreadsheetResponse.commentUpdateState": [
+          "COMMENT_UPDATE_STATE_UNSPECIFIED",
+          "NO_UPDATES_REQUESTED",
+          "ALL_SAVED",
+          "ALL_FAILED_UNKNOWN_REASON"
+        ],
         "BatchUpdateValuesByDataFilterRequest.responseDateTimeRenderOption": [
           "SERIAL_NUMBER",
           "FORMATTED_STRING"
@@ -6014,6 +6175,11 @@
           "ACCENT6",
           "LINK"
         ],
+        "CommentThread.status": [
+          "STATUS_UNSPECIFIED",
+          "OPEN",
+          "RESOLVED"
+        ],
         "ConditionValue.relativeDate": [
           "RELATIVE_DATE_UNSPECIFIED",
           "PAST_YEAR",
@@ -6175,6 +6341,12 @@
           "N_A",
           "LOADING"
         ],
+        "GetSpreadsheetByDataFilterRequest.commentsViewMode": [
+          "COMMENTS_VIEW_MODE_UNSPECIFIED",
+          "COMMENTS_VIEW_MODE_DEFAULT_FOR_CURRENT_ACCESS",
+          "COMMENTS_VIEW_MODE_OMITTED",
+          "COMMENTS_VIEW_MODE_INCLUDED"
+        ],
         "HistogramChartSpec.legendPosition": [
           "HISTOGRAM_CHART_LEGEND_POSITION_UNSPECIFIED",
           "BOTTOM_LEGEND",
@@ -6298,6 +6470,12 @@
           "TRIANGLE",
           "X_MARK"
         ],
+        "Post.commentAction": [
+          "COMMENT_ACTION_TYPE_UNSPECIFIED",
+          "NO_COMMENT_ACTION_CHANGE",
+          "RESOLVE",
+          "REOPEN"
+        ],
         "RefreshCancellationStatus.errorCode": [
           "REFRESH_CANCELLATION_ERROR_CODE_UNSPECIFIED",
           "EXECUTION_NOT_FOUND",
@@ -6346,6 +6524,12 @@
           "DIMENSION_UNSPECIFIED",
           "ROWS",
           "COLUMNS"
+        ],
+        "Spreadsheet.commentsViewMode": [
+          "COMMENTS_VIEW_MODE_UNSPECIFIED",
+          "COMMENTS_VIEW_MODE_DEFAULT_FOR_CURRENT_ACCESS",
+          "COMMENTS_VIEW_MODE_OMITTED",
+          "COMMENTS_VIEW_MODE_INCLUDED"
         ],
         "SpreadsheetProperties.autoRecalc": [
           "RECALCULATION_INTERVAL_UNSPECIFIED",
@@ -6506,6 +6690,15 @@
         "spreadsheets.get": {
           "httpMethod": "GET",
           "parameters": {
+            "commentsViewMode": {
+              "enum": [
+                "COMMENTS_VIEW_MODE_UNSPECIFIED",
+                "COMMENTS_VIEW_MODE_DEFAULT_FOR_CURRENT_ACCESS",
+                "COMMENTS_VIEW_MODE_OMITTED",
+                "COMMENTS_VIEW_MODE_INCLUDED"
+              ],
+              "location": "query"
+            },
             "excludeTablesInBandedRanges": {
               "location": "query"
             },
@@ -6847,6 +7040,868 @@
       "rootUrl": "https://sheets.googleapis.com/",
       "servicePath": "",
       "version": "v4"
+    },
+    "slides": {
+      "discoveryUrl": "https://slides.googleapis.com/$discovery/rest?version=v1",
+      "enums": {
+        "AffineTransform.unit": [
+          "UNIT_UNSPECIFIED",
+          "EMU",
+          "PT"
+        ],
+        "AutoText.type": [
+          "TYPE_UNSPECIFIED",
+          "SLIDE_NUMBER"
+        ],
+        "Autofit.autofitType": [
+          "AUTOFIT_TYPE_UNSPECIFIED",
+          "NONE",
+          "TEXT_AUTOFIT",
+          "SHAPE_AUTOFIT"
+        ],
+        "BatchUpdatePresentationResponse.commentUpdateState": [
+          "COMMENT_UPDATE_STATE_UNSPECIFIED",
+          "NO_UPDATES_REQUESTED",
+          "ALL_SAVED",
+          "ALL_FAILED_UNKNOWN_REASON"
+        ],
+        "CommentThread.status": [
+          "STATUS_UNSPECIFIED",
+          "OPEN",
+          "RESOLVED"
+        ],
+        "CreateLineRequest.category": [
+          "LINE_CATEGORY_UNSPECIFIED",
+          "STRAIGHT",
+          "BENT",
+          "CURVED"
+        ],
+        "CreateLineRequest.lineCategory": [
+          "STRAIGHT",
+          "BENT",
+          "CURVED"
+        ],
+        "CreateParagraphBulletsRequest.bulletPreset": [
+          "BULLET_DISC_CIRCLE_SQUARE",
+          "BULLET_DIAMONDX_ARROW3D_SQUARE",
+          "BULLET_CHECKBOX",
+          "BULLET_ARROW_DIAMOND_DISC",
+          "BULLET_STAR_CIRCLE_SQUARE",
+          "BULLET_ARROW3D_CIRCLE_SQUARE",
+          "BULLET_LEFTTRIANGLE_DIAMOND_DISC",
+          "BULLET_DIAMONDX_HOLLOWDIAMOND_SQUARE",
+          "BULLET_DIAMOND_CIRCLE_SQUARE",
+          "NUMBERED_DIGIT_ALPHA_ROMAN",
+          "NUMBERED_DIGIT_ALPHA_ROMAN_PARENS",
+          "NUMBERED_DIGIT_NESTED",
+          "NUMBERED_UPPERALPHA_ALPHA_ROMAN",
+          "NUMBERED_UPPERROMAN_UPPERALPHA_DIGIT",
+          "NUMBERED_ZERODIGIT_ALPHA_ROMAN"
+        ],
+        "CreateShapeRequest.shapeType": [
+          "TYPE_UNSPECIFIED",
+          "TEXT_BOX",
+          "RECTANGLE",
+          "ROUND_RECTANGLE",
+          "ELLIPSE",
+          "ARC",
+          "BENT_ARROW",
+          "BENT_UP_ARROW",
+          "BEVEL",
+          "BLOCK_ARC",
+          "BRACE_PAIR",
+          "BRACKET_PAIR",
+          "CAN",
+          "CHEVRON",
+          "CHORD",
+          "CLOUD",
+          "CORNER",
+          "CUBE",
+          "CURVED_DOWN_ARROW",
+          "CURVED_LEFT_ARROW",
+          "CURVED_RIGHT_ARROW",
+          "CURVED_UP_ARROW",
+          "DECAGON",
+          "DIAGONAL_STRIPE",
+          "DIAMOND",
+          "DODECAGON",
+          "DONUT",
+          "DOUBLE_WAVE",
+          "DOWN_ARROW",
+          "DOWN_ARROW_CALLOUT",
+          "FOLDED_CORNER",
+          "FRAME",
+          "HALF_FRAME",
+          "HEART",
+          "HEPTAGON",
+          "HEXAGON",
+          "HOME_PLATE",
+          "HORIZONTAL_SCROLL",
+          "IRREGULAR_SEAL_1",
+          "IRREGULAR_SEAL_2",
+          "LEFT_ARROW",
+          "LEFT_ARROW_CALLOUT",
+          "LEFT_BRACE",
+          "LEFT_BRACKET",
+          "LEFT_RIGHT_ARROW",
+          "LEFT_RIGHT_ARROW_CALLOUT",
+          "LEFT_RIGHT_UP_ARROW",
+          "LEFT_UP_ARROW",
+          "LIGHTNING_BOLT",
+          "MATH_DIVIDE",
+          "MATH_EQUAL",
+          "MATH_MINUS",
+          "MATH_MULTIPLY",
+          "MATH_NOT_EQUAL",
+          "MATH_PLUS",
+          "MOON",
+          "NO_SMOKING",
+          "NOTCHED_RIGHT_ARROW",
+          "OCTAGON",
+          "PARALLELOGRAM",
+          "PENTAGON",
+          "PIE",
+          "PLAQUE",
+          "PLUS",
+          "QUAD_ARROW",
+          "QUAD_ARROW_CALLOUT",
+          "RIBBON",
+          "RIBBON_2",
+          "RIGHT_ARROW",
+          "RIGHT_ARROW_CALLOUT",
+          "RIGHT_BRACE",
+          "RIGHT_BRACKET",
+          "ROUND_1_RECTANGLE",
+          "ROUND_2_DIAGONAL_RECTANGLE",
+          "ROUND_2_SAME_RECTANGLE",
+          "RIGHT_TRIANGLE",
+          "SMILEY_FACE",
+          "SNIP_1_RECTANGLE",
+          "SNIP_2_DIAGONAL_RECTANGLE",
+          "SNIP_2_SAME_RECTANGLE",
+          "SNIP_ROUND_RECTANGLE",
+          "STAR_10",
+          "STAR_12",
+          "STAR_16",
+          "STAR_24",
+          "STAR_32",
+          "STAR_4",
+          "STAR_5",
+          "STAR_6",
+          "STAR_7",
+          "STAR_8",
+          "STRIPED_RIGHT_ARROW",
+          "SUN",
+          "TRAPEZOID",
+          "TRIANGLE",
+          "UP_ARROW",
+          "UP_ARROW_CALLOUT",
+          "UP_DOWN_ARROW",
+          "UTURN_ARROW",
+          "VERTICAL_SCROLL",
+          "WAVE",
+          "WEDGE_ELLIPSE_CALLOUT",
+          "WEDGE_RECTANGLE_CALLOUT",
+          "WEDGE_ROUND_RECTANGLE_CALLOUT",
+          "FLOW_CHART_ALTERNATE_PROCESS",
+          "FLOW_CHART_COLLATE",
+          "FLOW_CHART_CONNECTOR",
+          "FLOW_CHART_DECISION",
+          "FLOW_CHART_DELAY",
+          "FLOW_CHART_DISPLAY",
+          "FLOW_CHART_DOCUMENT",
+          "FLOW_CHART_EXTRACT",
+          "FLOW_CHART_INPUT_OUTPUT",
+          "FLOW_CHART_INTERNAL_STORAGE",
+          "FLOW_CHART_MAGNETIC_DISK",
+          "FLOW_CHART_MAGNETIC_DRUM",
+          "FLOW_CHART_MAGNETIC_TAPE",
+          "FLOW_CHART_MANUAL_INPUT",
+          "FLOW_CHART_MANUAL_OPERATION",
+          "FLOW_CHART_MERGE",
+          "FLOW_CHART_MULTIDOCUMENT",
+          "FLOW_CHART_OFFLINE_STORAGE",
+          "FLOW_CHART_OFFPAGE_CONNECTOR",
+          "FLOW_CHART_ONLINE_STORAGE",
+          "FLOW_CHART_OR",
+          "FLOW_CHART_PREDEFINED_PROCESS",
+          "FLOW_CHART_PREPARATION",
+          "FLOW_CHART_PROCESS",
+          "FLOW_CHART_PUNCHED_CARD",
+          "FLOW_CHART_PUNCHED_TAPE",
+          "FLOW_CHART_SORT",
+          "FLOW_CHART_SUMMING_JUNCTION",
+          "FLOW_CHART_TERMINATOR",
+          "ARROW_EAST",
+          "ARROW_NORTH_EAST",
+          "ARROW_NORTH",
+          "SPEECH",
+          "STARBURST",
+          "TEARDROP",
+          "ELLIPSE_RIBBON",
+          "ELLIPSE_RIBBON_2",
+          "CLOUD_CALLOUT",
+          "CUSTOM"
+        ],
+        "CreateSheetsChartRequest.linkingMode": [
+          "NOT_LINKED_IMAGE",
+          "LINKED"
+        ],
+        "CreateVideoRequest.source": [
+          "SOURCE_UNSPECIFIED",
+          "YOUTUBE",
+          "DRIVE"
+        ],
+        "Dimension.unit": [
+          "UNIT_UNSPECIFIED",
+          "EMU",
+          "PT"
+        ],
+        "LayoutReference.predefinedLayout": [
+          "PREDEFINED_LAYOUT_UNSPECIFIED",
+          "BLANK",
+          "CAPTION_ONLY",
+          "TITLE",
+          "TITLE_AND_BODY",
+          "TITLE_AND_TWO_COLUMNS",
+          "TITLE_ONLY",
+          "SECTION_HEADER",
+          "SECTION_TITLE_AND_DESCRIPTION",
+          "ONE_COLUMN_TEXT",
+          "MAIN_POINT",
+          "BIG_NUMBER"
+        ],
+        "Line.lineCategory": [
+          "LINE_CATEGORY_UNSPECIFIED",
+          "STRAIGHT",
+          "BENT",
+          "CURVED"
+        ],
+        "Line.lineType": [
+          "TYPE_UNSPECIFIED",
+          "STRAIGHT_CONNECTOR_1",
+          "BENT_CONNECTOR_2",
+          "BENT_CONNECTOR_3",
+          "BENT_CONNECTOR_4",
+          "BENT_CONNECTOR_5",
+          "CURVED_CONNECTOR_2",
+          "CURVED_CONNECTOR_3",
+          "CURVED_CONNECTOR_4",
+          "CURVED_CONNECTOR_5",
+          "STRAIGHT_LINE"
+        ],
+        "LineProperties.dashStyle": [
+          "DASH_STYLE_UNSPECIFIED",
+          "SOLID",
+          "DOT",
+          "DASH",
+          "DASH_DOT",
+          "LONG_DASH",
+          "LONG_DASH_DOT"
+        ],
+        "LineProperties.endArrow": [
+          "ARROW_STYLE_UNSPECIFIED",
+          "NONE",
+          "STEALTH_ARROW",
+          "FILL_ARROW",
+          "FILL_CIRCLE",
+          "FILL_SQUARE",
+          "FILL_DIAMOND",
+          "OPEN_ARROW",
+          "OPEN_CIRCLE",
+          "OPEN_SQUARE",
+          "OPEN_DIAMOND"
+        ],
+        "LineProperties.startArrow": [
+          "ARROW_STYLE_UNSPECIFIED",
+          "NONE",
+          "STEALTH_ARROW",
+          "FILL_ARROW",
+          "FILL_CIRCLE",
+          "FILL_SQUARE",
+          "FILL_DIAMOND",
+          "OPEN_ARROW",
+          "OPEN_CIRCLE",
+          "OPEN_SQUARE",
+          "OPEN_DIAMOND"
+        ],
+        "Link.relativeLink": [
+          "RELATIVE_SLIDE_LINK_UNSPECIFIED",
+          "NEXT_SLIDE",
+          "PREVIOUS_SLIDE",
+          "FIRST_SLIDE",
+          "LAST_SLIDE"
+        ],
+        "OpaqueColor.themeColor": [
+          "THEME_COLOR_TYPE_UNSPECIFIED",
+          "DARK1",
+          "LIGHT1",
+          "DARK2",
+          "LIGHT2",
+          "ACCENT1",
+          "ACCENT2",
+          "ACCENT3",
+          "ACCENT4",
+          "ACCENT5",
+          "ACCENT6",
+          "HYPERLINK",
+          "FOLLOWED_HYPERLINK",
+          "TEXT1",
+          "BACKGROUND1",
+          "TEXT2",
+          "BACKGROUND2"
+        ],
+        "Outline.dashStyle": [
+          "DASH_STYLE_UNSPECIFIED",
+          "SOLID",
+          "DOT",
+          "DASH",
+          "DASH_DOT",
+          "LONG_DASH",
+          "LONG_DASH_DOT"
+        ],
+        "Outline.propertyState": [
+          "RENDERED",
+          "NOT_RENDERED",
+          "INHERIT"
+        ],
+        "Page.commentsViewMode": [
+          "COMMENTS_VIEW_MODE_UNSPECIFIED",
+          "COMMENTS_VIEW_MODE_DEFAULT_FOR_CURRENT_ACCESS",
+          "COMMENTS_VIEW_MODE_OMITTED",
+          "COMMENTS_VIEW_MODE_INCLUDED"
+        ],
+        "Page.pageType": [
+          "SLIDE",
+          "MASTER",
+          "LAYOUT",
+          "NOTES",
+          "NOTES_MASTER"
+        ],
+        "PageBackgroundFill.propertyState": [
+          "RENDERED",
+          "NOT_RENDERED",
+          "INHERIT"
+        ],
+        "ParagraphStyle.alignment": [
+          "ALIGNMENT_UNSPECIFIED",
+          "START",
+          "CENTER",
+          "END",
+          "JUSTIFIED"
+        ],
+        "ParagraphStyle.direction": [
+          "TEXT_DIRECTION_UNSPECIFIED",
+          "LEFT_TO_RIGHT",
+          "RIGHT_TO_LEFT"
+        ],
+        "ParagraphStyle.spacingMode": [
+          "SPACING_MODE_UNSPECIFIED",
+          "NEVER_COLLAPSE",
+          "COLLAPSE_LISTS"
+        ],
+        "Placeholder.type": [
+          "NONE",
+          "BODY",
+          "CHART",
+          "CLIP_ART",
+          "CENTERED_TITLE",
+          "DIAGRAM",
+          "DATE_AND_TIME",
+          "FOOTER",
+          "HEADER",
+          "MEDIA",
+          "OBJECT",
+          "PICTURE",
+          "SLIDE_NUMBER",
+          "SUBTITLE",
+          "TABLE",
+          "TITLE",
+          "SLIDE_IMAGE"
+        ],
+        "Post.commentAction": [
+          "COMMENT_ACTION_TYPE_UNSPECIFIED",
+          "NO_COMMENT_ACTION_CHANGE",
+          "RESOLVE",
+          "REOPEN"
+        ],
+        "Presentation.commentsViewMode": [
+          "COMMENTS_VIEW_MODE_UNSPECIFIED",
+          "COMMENTS_VIEW_MODE_DEFAULT_FOR_CURRENT_ACCESS",
+          "COMMENTS_VIEW_MODE_OMITTED",
+          "COMMENTS_VIEW_MODE_INCLUDED"
+        ],
+        "Range.type": [
+          "RANGE_TYPE_UNSPECIFIED",
+          "FIXED_RANGE",
+          "FROM_START_INDEX",
+          "ALL"
+        ],
+        "Recolor.name": [
+          "NONE",
+          "LIGHT1",
+          "LIGHT2",
+          "LIGHT3",
+          "LIGHT4",
+          "LIGHT5",
+          "LIGHT6",
+          "LIGHT7",
+          "LIGHT8",
+          "LIGHT9",
+          "LIGHT10",
+          "DARK1",
+          "DARK2",
+          "DARK3",
+          "DARK4",
+          "DARK5",
+          "DARK6",
+          "DARK7",
+          "DARK8",
+          "DARK9",
+          "DARK10",
+          "GRAYSCALE",
+          "NEGATIVE",
+          "SEPIA",
+          "CUSTOM"
+        ],
+        "ReplaceAllShapesWithImageRequest.imageReplaceMethod": [
+          "IMAGE_REPLACE_METHOD_UNSPECIFIED",
+          "CENTER_INSIDE",
+          "CENTER_CROP"
+        ],
+        "ReplaceAllShapesWithImageRequest.replaceMethod": [
+          "CENTER_INSIDE",
+          "CENTER_CROP"
+        ],
+        "ReplaceAllShapesWithSheetsChartRequest.linkingMode": [
+          "NOT_LINKED_IMAGE",
+          "LINKED"
+        ],
+        "ReplaceImageRequest.imageReplaceMethod": [
+          "IMAGE_REPLACE_METHOD_UNSPECIFIED",
+          "CENTER_INSIDE",
+          "CENTER_CROP"
+        ],
+        "Shadow.alignment": [
+          "RECTANGLE_POSITION_UNSPECIFIED",
+          "TOP_LEFT",
+          "TOP_CENTER",
+          "TOP_RIGHT",
+          "LEFT_CENTER",
+          "CENTER",
+          "RIGHT_CENTER",
+          "BOTTOM_LEFT",
+          "BOTTOM_CENTER",
+          "BOTTOM_RIGHT"
+        ],
+        "Shadow.propertyState": [
+          "RENDERED",
+          "NOT_RENDERED",
+          "INHERIT"
+        ],
+        "Shadow.type": [
+          "SHADOW_TYPE_UNSPECIFIED",
+          "OUTER"
+        ],
+        "Shape.shapeType": [
+          "TYPE_UNSPECIFIED",
+          "TEXT_BOX",
+          "RECTANGLE",
+          "ROUND_RECTANGLE",
+          "ELLIPSE",
+          "ARC",
+          "BENT_ARROW",
+          "BENT_UP_ARROW",
+          "BEVEL",
+          "BLOCK_ARC",
+          "BRACE_PAIR",
+          "BRACKET_PAIR",
+          "CAN",
+          "CHEVRON",
+          "CHORD",
+          "CLOUD",
+          "CORNER",
+          "CUBE",
+          "CURVED_DOWN_ARROW",
+          "CURVED_LEFT_ARROW",
+          "CURVED_RIGHT_ARROW",
+          "CURVED_UP_ARROW",
+          "DECAGON",
+          "DIAGONAL_STRIPE",
+          "DIAMOND",
+          "DODECAGON",
+          "DONUT",
+          "DOUBLE_WAVE",
+          "DOWN_ARROW",
+          "DOWN_ARROW_CALLOUT",
+          "FOLDED_CORNER",
+          "FRAME",
+          "HALF_FRAME",
+          "HEART",
+          "HEPTAGON",
+          "HEXAGON",
+          "HOME_PLATE",
+          "HORIZONTAL_SCROLL",
+          "IRREGULAR_SEAL_1",
+          "IRREGULAR_SEAL_2",
+          "LEFT_ARROW",
+          "LEFT_ARROW_CALLOUT",
+          "LEFT_BRACE",
+          "LEFT_BRACKET",
+          "LEFT_RIGHT_ARROW",
+          "LEFT_RIGHT_ARROW_CALLOUT",
+          "LEFT_RIGHT_UP_ARROW",
+          "LEFT_UP_ARROW",
+          "LIGHTNING_BOLT",
+          "MATH_DIVIDE",
+          "MATH_EQUAL",
+          "MATH_MINUS",
+          "MATH_MULTIPLY",
+          "MATH_NOT_EQUAL",
+          "MATH_PLUS",
+          "MOON",
+          "NO_SMOKING",
+          "NOTCHED_RIGHT_ARROW",
+          "OCTAGON",
+          "PARALLELOGRAM",
+          "PENTAGON",
+          "PIE",
+          "PLAQUE",
+          "PLUS",
+          "QUAD_ARROW",
+          "QUAD_ARROW_CALLOUT",
+          "RIBBON",
+          "RIBBON_2",
+          "RIGHT_ARROW",
+          "RIGHT_ARROW_CALLOUT",
+          "RIGHT_BRACE",
+          "RIGHT_BRACKET",
+          "ROUND_1_RECTANGLE",
+          "ROUND_2_DIAGONAL_RECTANGLE",
+          "ROUND_2_SAME_RECTANGLE",
+          "RIGHT_TRIANGLE",
+          "SMILEY_FACE",
+          "SNIP_1_RECTANGLE",
+          "SNIP_2_DIAGONAL_RECTANGLE",
+          "SNIP_2_SAME_RECTANGLE",
+          "SNIP_ROUND_RECTANGLE",
+          "STAR_10",
+          "STAR_12",
+          "STAR_16",
+          "STAR_24",
+          "STAR_32",
+          "STAR_4",
+          "STAR_5",
+          "STAR_6",
+          "STAR_7",
+          "STAR_8",
+          "STRIPED_RIGHT_ARROW",
+          "SUN",
+          "TRAPEZOID",
+          "TRIANGLE",
+          "UP_ARROW",
+          "UP_ARROW_CALLOUT",
+          "UP_DOWN_ARROW",
+          "UTURN_ARROW",
+          "VERTICAL_SCROLL",
+          "WAVE",
+          "WEDGE_ELLIPSE_CALLOUT",
+          "WEDGE_RECTANGLE_CALLOUT",
+          "WEDGE_ROUND_RECTANGLE_CALLOUT",
+          "FLOW_CHART_ALTERNATE_PROCESS",
+          "FLOW_CHART_COLLATE",
+          "FLOW_CHART_CONNECTOR",
+          "FLOW_CHART_DECISION",
+          "FLOW_CHART_DELAY",
+          "FLOW_CHART_DISPLAY",
+          "FLOW_CHART_DOCUMENT",
+          "FLOW_CHART_EXTRACT",
+          "FLOW_CHART_INPUT_OUTPUT",
+          "FLOW_CHART_INTERNAL_STORAGE",
+          "FLOW_CHART_MAGNETIC_DISK",
+          "FLOW_CHART_MAGNETIC_DRUM",
+          "FLOW_CHART_MAGNETIC_TAPE",
+          "FLOW_CHART_MANUAL_INPUT",
+          "FLOW_CHART_MANUAL_OPERATION",
+          "FLOW_CHART_MERGE",
+          "FLOW_CHART_MULTIDOCUMENT",
+          "FLOW_CHART_OFFLINE_STORAGE",
+          "FLOW_CHART_OFFPAGE_CONNECTOR",
+          "FLOW_CHART_ONLINE_STORAGE",
+          "FLOW_CHART_OR",
+          "FLOW_CHART_PREDEFINED_PROCESS",
+          "FLOW_CHART_PREPARATION",
+          "FLOW_CHART_PROCESS",
+          "FLOW_CHART_PUNCHED_CARD",
+          "FLOW_CHART_PUNCHED_TAPE",
+          "FLOW_CHART_SORT",
+          "FLOW_CHART_SUMMING_JUNCTION",
+          "FLOW_CHART_TERMINATOR",
+          "ARROW_EAST",
+          "ARROW_NORTH_EAST",
+          "ARROW_NORTH",
+          "SPEECH",
+          "STARBURST",
+          "TEARDROP",
+          "ELLIPSE_RIBBON",
+          "ELLIPSE_RIBBON_2",
+          "CLOUD_CALLOUT",
+          "CUSTOM"
+        ],
+        "ShapeBackgroundFill.propertyState": [
+          "RENDERED",
+          "NOT_RENDERED",
+          "INHERIT"
+        ],
+        "ShapeProperties.contentAlignment": [
+          "CONTENT_ALIGNMENT_UNSPECIFIED",
+          "CONTENT_ALIGNMENT_UNSUPPORTED",
+          "TOP",
+          "MIDDLE",
+          "BOTTOM"
+        ],
+        "TableBorderProperties.dashStyle": [
+          "DASH_STYLE_UNSPECIFIED",
+          "SOLID",
+          "DOT",
+          "DASH",
+          "DASH_DOT",
+          "LONG_DASH",
+          "LONG_DASH_DOT"
+        ],
+        "TableCellBackgroundFill.propertyState": [
+          "RENDERED",
+          "NOT_RENDERED",
+          "INHERIT"
+        ],
+        "TableCellProperties.contentAlignment": [
+          "CONTENT_ALIGNMENT_UNSPECIFIED",
+          "CONTENT_ALIGNMENT_UNSUPPORTED",
+          "TOP",
+          "MIDDLE",
+          "BOTTOM"
+        ],
+        "TextStyle.baselineOffset": [
+          "BASELINE_OFFSET_UNSPECIFIED",
+          "NONE",
+          "SUPERSCRIPT",
+          "SUBSCRIPT"
+        ],
+        "ThemeColorPair.type": [
+          "THEME_COLOR_TYPE_UNSPECIFIED",
+          "DARK1",
+          "LIGHT1",
+          "DARK2",
+          "LIGHT2",
+          "ACCENT1",
+          "ACCENT2",
+          "ACCENT3",
+          "ACCENT4",
+          "ACCENT5",
+          "ACCENT6",
+          "HYPERLINK",
+          "FOLLOWED_HYPERLINK",
+          "TEXT1",
+          "BACKGROUND1",
+          "TEXT2",
+          "BACKGROUND2"
+        ],
+        "UpdateLineCategoryRequest.lineCategory": [
+          "LINE_CATEGORY_UNSPECIFIED",
+          "STRAIGHT",
+          "BENT",
+          "CURVED"
+        ],
+        "UpdatePageElementTransformRequest.applyMode": [
+          "APPLY_MODE_UNSPECIFIED",
+          "RELATIVE",
+          "ABSOLUTE"
+        ],
+        "UpdatePageElementsZOrderRequest.operation": [
+          "Z_ORDER_OPERATION_UNSPECIFIED",
+          "BRING_TO_FRONT",
+          "BRING_FORWARD",
+          "SEND_BACKWARD",
+          "SEND_TO_BACK"
+        ],
+        "UpdateTableBorderPropertiesRequest.borderPosition": [
+          "ALL",
+          "BOTTOM",
+          "INNER",
+          "INNER_HORIZONTAL",
+          "INNER_VERTICAL",
+          "LEFT",
+          "OUTER",
+          "RIGHT",
+          "TOP"
+        ],
+        "Video.source": [
+          "SOURCE_UNSPECIFIED",
+          "YOUTUBE",
+          "DRIVE"
+        ]
+      },
+      "globalParameters": {
+        "$.xgafv": {
+          "location": "query"
+        },
+        "access_token": {
+          "location": "query"
+        },
+        "alt": {
+          "location": "query"
+        },
+        "callback": {
+          "location": "query"
+        },
+        "fields": {
+          "location": "query"
+        },
+        "key": {
+          "location": "query"
+        },
+        "oauth_token": {
+          "location": "query"
+        },
+        "prettyPrint": {
+          "location": "query"
+        },
+        "quotaUser": {
+          "location": "query"
+        },
+        "uploadType": {
+          "location": "query"
+        },
+        "upload_protocol": {
+          "location": "query"
+        }
+      },
+      "methods": {
+        "presentations.batchUpdate": {
+          "httpMethod": "POST",
+          "parameters": {
+            "presentationId": {
+              "location": "path",
+              "required": true
+            }
+          },
+          "path": "v1/presentations/{presentationId}:batchUpdate",
+          "scopes": [
+            "https://www.googleapis.com/auth/drive",
+            "https://www.googleapis.com/auth/drive.file",
+            "https://www.googleapis.com/auth/drive.readonly",
+            "https://www.googleapis.com/auth/presentations",
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/spreadsheets.readonly"
+          ]
+        },
+        "presentations.create": {
+          "httpMethod": "POST",
+          "parameters": {},
+          "path": "v1/presentations",
+          "scopes": [
+            "https://www.googleapis.com/auth/drive",
+            "https://www.googleapis.com/auth/drive.file",
+            "https://www.googleapis.com/auth/presentations"
+          ]
+        },
+        "presentations.get": {
+          "httpMethod": "GET",
+          "parameters": {
+            "commentsViewMode": {
+              "enum": [
+                "COMMENTS_VIEW_MODE_UNSPECIFIED",
+                "COMMENTS_VIEW_MODE_DEFAULT_FOR_CURRENT_ACCESS",
+                "COMMENTS_VIEW_MODE_OMITTED",
+                "COMMENTS_VIEW_MODE_INCLUDED"
+              ],
+              "location": "query"
+            },
+            "presentationId": {
+              "location": "path",
+              "required": true
+            }
+          },
+          "path": "v1/presentations/{+presentationId}",
+          "scopes": [
+            "https://www.googleapis.com/auth/drive",
+            "https://www.googleapis.com/auth/drive.file",
+            "https://www.googleapis.com/auth/drive.readonly",
+            "https://www.googleapis.com/auth/presentations",
+            "https://www.googleapis.com/auth/presentations.readonly"
+          ]
+        },
+        "presentations.pages.get": {
+          "httpMethod": "GET",
+          "parameters": {
+            "commentsViewMode": {
+              "enum": [
+                "COMMENTS_VIEW_MODE_UNSPECIFIED",
+                "COMMENTS_VIEW_MODE_DEFAULT_FOR_CURRENT_ACCESS",
+                "COMMENTS_VIEW_MODE_OMITTED",
+                "COMMENTS_VIEW_MODE_INCLUDED"
+              ],
+              "location": "query"
+            },
+            "pageObjectId": {
+              "location": "path",
+              "required": true
+            },
+            "presentationId": {
+              "location": "path",
+              "required": true
+            }
+          },
+          "path": "v1/presentations/{presentationId}/pages/{pageObjectId}",
+          "scopes": [
+            "https://www.googleapis.com/auth/drive",
+            "https://www.googleapis.com/auth/drive.file",
+            "https://www.googleapis.com/auth/drive.readonly",
+            "https://www.googleapis.com/auth/presentations",
+            "https://www.googleapis.com/auth/presentations.readonly"
+          ]
+        },
+        "presentations.pages.getThumbnail": {
+          "httpMethod": "GET",
+          "parameters": {
+            "pageObjectId": {
+              "location": "path",
+              "required": true
+            },
+            "presentationId": {
+              "location": "path",
+              "required": true
+            },
+            "thumbnailProperties.mimeType": {
+              "enum": [
+                "PNG"
+              ],
+              "location": "query"
+            },
+            "thumbnailProperties.thumbnailSize": {
+              "enum": [
+                "THUMBNAIL_SIZE_UNSPECIFIED",
+                "LARGE",
+                "MEDIUM",
+                "SMALL",
+                "WIDTH2000_PX"
+              ],
+              "location": "query"
+            }
+          },
+          "path": "v1/presentations/{presentationId}/pages/{pageObjectId}/thumbnail",
+          "scopes": [
+            "https://www.googleapis.com/auth/drive",
+            "https://www.googleapis.com/auth/drive.file",
+            "https://www.googleapis.com/auth/drive.readonly",
+            "https://www.googleapis.com/auth/presentations",
+            "https://www.googleapis.com/auth/presentations.readonly"
+          ]
+        }
+      },
+      "rootUrl": "https://slides.googleapis.com/",
+      "servicePath": "",
+      "version": "v1"
     },
     "tasks": {
       "discoveryUrl": "https://tasks.googleapis.com/$discovery/rest?version=v1",

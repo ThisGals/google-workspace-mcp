@@ -100,7 +100,7 @@ function requestLink(service, method, httpMethod, description) {
  * When one of these grows a manifest, it moves into SERVICE_VERSIONS in
  * generate-descriptor.mjs and stops being a candidate.
  */
-const CANDIDATE_SERVICES = { chat: 'v1', slides: 'v1', forms: 'v1' };
+const CANDIDATE_SERVICES = { chat: 'v1', forms: 'v1' };
 
 /** Resolve a candidate's Discovery URL the same way the descriptor generator does: ask. */
 async function candidateDiscoveryUrls() {
@@ -232,7 +232,7 @@ lines.push('Nothing here is wired up, so every method carries a **Request** link
 lines.push('');
 lines.push('Some are cheap and some are not, and the difference is worth knowing before you ask:');
 lines.push('');
-lines.push('- **slides**, **forms** — small, self-contained surfaces. Slides is 5 methods; Forms is 10.');
+lines.push('- **forms** — a small, self-contained surface of 10 methods.');
 lines.push('- **chat (Google Chat API)** — the biggest surface here and the least certain. Much of it is built for Chat **apps** (bots), not for acting as yourself: the scope lists are dominated by `chat.bot`, `chat.app.*` and `chat.admin.*`. User-credential access is a narrower path and, in places, Workspace-only — so a personal `@gmail.com` account may not be able to call it at all. That question would need answering with a real request before any of it is promised.');
 lines.push('');
 

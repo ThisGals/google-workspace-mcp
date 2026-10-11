@@ -5,7 +5,7 @@
 [![Node](https://img.shields.io/node/v/@aaronsb/google-workspace-mcp?logo=node.js&label=node)](https://nodejs.org)
 [![License](https://img.shields.io/github/license/aaronsb/google-workspace-mcp)](LICENSE)
 
-**Give your AI agent real access to Google Workspace** — Gmail, Calendar, Drive, Docs, Sheets, Tasks, Meet and Contacts — from one MCP server, across as many accounts as you have.
+**Give your AI agent real access to Google Workspace** — Gmail, Calendar, Drive, Docs, Sheets, Slides, Tasks, Meet and Contacts — from one MCP server, across as many accounts as you have.
 
 Search your mail, check your calendar, write a doc, file a task — in conversation, as yourself.
 
@@ -15,7 +15,7 @@ First, you need **Google OAuth credentials** — the one prerequisite common to 
 
 1. Go to [console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
 2. Create an **OAuth 2.0 Client ID**, application type **Desktop app**
-3. Enable the APIs you want (Gmail, Calendar, Drive, Sheets, Docs, Tasks, Meet — and **People API** for contacts, which is what Google calls it in the console)
+3. Enable the APIs you want (Gmail, Calendar, Drive, Sheets, Docs, Slides, Tasks, Meet — and **People API** for contacts, which is what Google calls it in the console)
 4. Keep the **Client ID** and **Client Secret** handy — you'll paste them in below
 
 Then pick the path that matches how you work. All three run the same server.
@@ -117,7 +117,7 @@ flowchart LR
 
 ## What it can do
 
-**12 tools across 8 Google services**, plus multi-account handling, per-account read-only access, bulk execution, content authoring, and a file sandbox.
+**13 tools across 9 Google services**, plus multi-account handling, per-account read-only access, bulk execution, content authoring, and a file sandbox.
 
 | Tool | What It Does |
 |------|--------------|
@@ -126,6 +126,7 @@ flowchart LR
 | `manage_drive` | Drive — search, get, upload, download, copy, rename / move, delete, export, permissions, comments, view images |
 | `manage_sheets` | Sheets — read / write ranges (row-numbered output), append, clear, manage tabs, copy / duplicate / rename |
 | `manage_docs` | Docs — get, create, append, insert text, find-and-replace |
+| `manage_slides` | Slides — read a deck as an outline, create, add slides with layouts, set or replace text, text boxes, images, speaker notes, see a slide as an image, plus a raw `batchUpdate` for everything else |
 | `manage_tasks` | Tasks — list / create / update / complete tasks and task lists |
 | `manage_meet` | Meet — create and configure meeting spaces, see who is in a call now, browse past conferences, participants, transcripts, recordings, smart notes |
 | `manage_contacts` | Contacts — look people up in your saved contacts, the addresses you have only corresponded with, and your organization's directory; create, update and delete contacts |
@@ -177,7 +178,7 @@ Two hundred messages trashed in one round trip instead of two hundred. This is n
 
 ## Ask for what's missing
 
-This server exposes **95 operations**, reaching 79 of the **257 methods** Google publishes across those eight APIs. It is a curated subset on purpose: an agent has to *choose* among these, and every method it must weigh is one it can pick wrongly. A tool with 257 operations isn't more capable than one with 95 — it's harder to use correctly.
+This server exposes **111 operations**, reaching 85 of the **268 methods** Google publishes across those nine APIs. It is a curated subset on purpose: an agent has to *choose* among these, and every method it must weigh is one it can pick wrongly. A tool with 257 operations isn't more capable than one with 95 — it's harder to use correctly.
 
 But that judgement was made without you.
 
@@ -185,7 +186,7 @@ But that judgement was made without you.
 
 Every method is listed — what it does, whether we expose it, and a **Request** link that opens a pre-filled issue. The descriptions are Google's own, quoted verbatim, and the page is generated from the same specification the client is built from, so it can't drift from reality.
 
-That page also lists **three whole APIs this server doesn't touch yet** — Chat, Slides and Forms — for the same reason: *not targeted* is a decision, not a fact of nature.
+That page also lists **two whole APIs this server doesn't touch yet** — Chat and Forms — for the same reason: *not targeted* is a decision, not a fact of nature.
 
 A good request **names the task, not the method**:
 
