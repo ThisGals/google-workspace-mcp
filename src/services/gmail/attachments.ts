@@ -13,9 +13,11 @@ import { requireString } from '../../server/handlers/validate.js';
 import { saveToWorkspace, formatFileOutput, isImageFile, buildImageBlock, getImageMimeType } from '../../executor/file-output.js';
 import type { HandlerResponse } from '../../server/formatting/markdown.js';
 
+type AttachmentInfo = { filename: string; attachmentId: string; mimeType: string; size: number };
+
 /** Walk message parts recursively to find attachments. */
-function findAttachments(parts: unknown[]): Array<{ filename: string; attachmentId: string; mimeType: string; size: number }> {
-  const attachments: Array<{ filename: string; attachmentId: string; mimeType: string; size: number }> = [];
+function findAttachments(parts: unknown[]): AttachmentInfo[] {
+  const attachments: AttachmentInfo[] = [];
   for (const part of parts) {
     const p = part as Record<string, unknown>;
     const filename = p.filename as string | undefined;
@@ -37,12 +39,54 @@ function findAttachments(parts: unknown[]): Array<{ filename: string; attachment
   return attachments;
 }
 
+/**
+ * Normalize a filename for a forgiving comparison: Unicode NFC, every space
+ * separator (category Zs — U+202F narrow no-break space, which macOS puts
+ * before AM/PM in screenshot names, U+00A0, and the rest) turned into a plain
+ * space, runs of spaces collapsed, ends trimmed.
+ */
+export function normalizeAttachmentName(name: string): string {
+  return name.normalize('NFC').replace(/\p{Zs}+/gu, ' ').trim();
+}
+
+/**
+ * Pick the attachment the caller asked for. An exact match wins; otherwise a
+ * single match on normalized names is used. Several normalized matches are
+ * refused rather than guessed. No match throws the same "not found" error as
+ * always.
+ */
+export function matchAttachment<T extends { filename: string }>(
+  attachments: T[],
+  filename: string,
+  messageId: string,
+): T {
+  const exact = attachments.find(a => a.filename === filename);
+  if (exact) return exact;
+
+  const wanted = normalizeAttachmentName(filename);
+  const candidates = attachments.filter(a => normalizeAttachmentName(a.filename) === wanted);
+  if (candidates.length === 1) return candidates[0];
+  if (candidates.length > 1) {
+    throw new Error(
+      `Attachment '${filename}' is ambiguous in message ${messageId}: it matches ` +
+      `${candidates.length} attachments (${candidates.map(a => JSON.stringify(a.filename)).join(', ')}). ` +
+      `Request one by its exact name.`,
+    );
+  }
+
+  const available = attachments.map(a => a.filename).join(', ') || '(none)';
+  throw new Error(
+    `Attachment '${filename}' not found in message ${messageId}. ` +
+    `Available attachments: ${available}`,
+  );
+}
+
 /** Fetch raw attachment data by messageId and filename. Returns the buffer and metadata. */
 async function fetchAttachmentData(
   messageId: string,
   filename: string,
   account: string,
-): Promise<{ buffer: Buffer; match: { filename: string; attachmentId: string; mimeType: string; size: number } }> {
+): Promise<{ buffer: Buffer; match: AttachmentInfo }> {
   // Read the message to find the attachment ID for this filename
   const msg = await call('gmail', 'users.messages.get', {
     userId: 'me',
@@ -52,14 +96,7 @@ async function fetchAttachmentData(
   const payload = msg.payload as Record<string, unknown> | undefined;
   const allAttachments = payload?.parts ? findAttachments(payload.parts as unknown[]) : [];
 
-  const match = allAttachments.find(a => a.filename === filename);
-  if (!match) {
-    const available = allAttachments.map(a => a.filename).join(', ') || '(none)';
-    throw new Error(
-      `Attachment '${filename}' not found in message ${messageId}. ` +
-      `Available attachments: ${available}`,
-    );
-  }
+  const match = matchAttachment(allAttachments, filename, messageId);
 
   // Fetch the attachment data
   const data = await call('gmail', 'users.messages.attachments.get', {
@@ -83,6 +120,7 @@ async function fetchAttachmentData(
 
 /**
  * Download an email attachment by filename — saves to workspace.
+ * The file is saved under Gmail's real attachment name, not the name typed.
  */
 export async function handleGetAttachment(
   params: Record<string, unknown>,
@@ -92,7 +130,7 @@ export async function handleGetAttachment(
   const filename = requireString(params, 'filename');
 
   const { buffer, match } = await fetchAttachmentData(messageId, filename, account);
-  const output = await saveToWorkspace(filename, buffer, match.mimeType);
+  const output = await saveToWorkspace(match.filename, buffer, match.mimeType);
 
   return {
     text: formatFileOutput(output),
@@ -109,15 +147,17 @@ export async function handleGetAttachment(
 
 /**
  * View an image attachment inline without saving to workspace.
+ * Uses Gmail's real attachment name, not the name typed.
  */
 export async function handleViewAttachment(
   params: Record<string, unknown>,
   account: string,
 ): Promise<HandlerResponse> {
   const messageId = requireString(params, 'messageId');
-  const filename = requireString(params, 'filename');
+  const requested = requireString(params, 'filename');
 
-  const { buffer, match } = await fetchAttachmentData(messageId, filename, account);
+  const { buffer, match } = await fetchAttachmentData(messageId, requested, account);
+  const filename = match.filename;
 
   if (!isImageFile(filename, match.mimeType)) {
     throw new Error(
