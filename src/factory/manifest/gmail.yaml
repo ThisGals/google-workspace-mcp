@@ -99,7 +99,7 @@ operations:
 
   reply:
     type: action
-    description: "reply to a message (thread-aware, creates draft when attachments present)"
+    description: "reply to a message (thread-aware, creates draft when attachments present). Goes to the original's Reply-To or From; `to` is ignored, so use `send` to write to someone else."
     params:
       messageId:
         type: string

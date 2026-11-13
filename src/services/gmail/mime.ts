@@ -72,16 +72,133 @@ function sanitizeHeader(value: string): string {
   return value.replace(/[\x00-\x1F\x7F]/g, '');
 }
 
+// eslint-disable-next-line no-control-regex
+const NON_ASCII = /[^\x00-\x7F]/;
+
+/** Folding whitespace between encoded-words. Decoders drop it between adjacent words. */
+const FOLD = `${CRLF} `;
+
 /**
- * Encode a header value that may contain non-ASCII, per RFC 2047.
+ * RFC 2047 caps an encoded-word at 75 characters. `=?UTF-8?B?` + `?=` is 12, which
+ * leaves 63 base64 characters: 15 groups of 4, so 45 bytes of UTF-8 per word.
+ */
+const MAX_WORD_BYTES = 45;
+
+/**
+ * Encode text as one or more RFC 2047 encoded-words, each at most 75 characters.
+ *
+ * Chunks are cut on code-point boundaries, never inside a UTF-8 sequence: RFC 2047
+ * requires every encoded-word to hold whole characters, and a split sequence
+ * decodes to replacement characters in most clients.
+ */
+function toEncodedWords(text: string): string[] {
+  const words: string[] = [];
+  let chunk = '';
+  let bytes = 0;
+  for (const ch of text) {
+    const n = Buffer.byteLength(ch, 'utf-8');
+    if (bytes + n > MAX_WORD_BYTES && chunk) {
+      words.push(chunk);
+      chunk = '';
+      bytes = 0;
+    }
+    chunk += ch;
+    bytes += n;
+  }
+  if (chunk) words.push(chunk);
+  return words.map((w) => `=?UTF-8?B?${Buffer.from(w, 'utf-8').toString('base64')}?=`);
+}
+
+/**
+ * Encode an unstructured header value (Subject), per RFC 2047.
  * A bare UTF-8 subject is not legal in a header; Gmail tolerates it, other
  * receivers mangle it. Encode only when needed, so plain subjects stay readable.
+ * The whole value is encoded, split into words of 75 characters or fewer.
  */
-function encodeHeaderValue(value: string): string {
+export function encodeUnstructuredHeader(value: string): string {
   const clean = sanitizeHeader(value);
-  // eslint-disable-next-line no-control-regex
-  if (!/[^\x00-\x7F]/.test(clean)) return clean;
-  return `=?UTF-8?B?${Buffer.from(clean, 'utf-8').toString('base64')}?=`;
+  if (!NON_ASCII.test(clean)) return clean;
+  return toEncodedWords(clean).join(FOLD);
+}
+
+/**
+ * Split an address list on the commas that separate mailboxes.
+ *
+ * `"Thompson, Michelle" <m@x.com>` is ONE mailbox: commas inside a quoted string
+ * (with backslash escapes honoured) or inside angle brackets don't separate.
+ */
+function splitAddressList(value: string): string[] {
+  const out: string[] = [];
+  let buf = '';
+  let quoted = false;
+  let angle = false;
+  let escaped = false;
+  for (const ch of value) {
+    if (escaped) {
+      buf += ch;
+      escaped = false;
+      continue;
+    }
+    if (quoted && ch === '\\') {
+      buf += ch;
+      escaped = true;
+      continue;
+    }
+    if (ch === '"') quoted = !quoted;
+    else if (!quoted && ch === '<') angle = true;
+    else if (!quoted && ch === '>') angle = false;
+    else if (ch === ',' && !quoted && !angle) {
+      out.push(buf);
+      buf = '';
+      continue;
+    }
+    buf += ch;
+  }
+  out.push(buf);
+  return out.map((s) => s.trim()).filter(Boolean);
+}
+
+/** RFC 5322 specials: an ASCII display name containing any of these must be quoted. */
+function nameNeedsQuoting(name: string): boolean {
+  return /[()<>[\]:;@\\,."]/.test(name);
+}
+
+function quoteName(name: string): string {
+  return `"${name.replace(/(["\\])/g, '\\$1')}"`;
+}
+
+/**
+ * Encode ONE mailbox, encoding only its display name.
+ *
+ * `"Brandhaüs" <heather@brandhaus8.com>` becomes
+ * `=?UTF-8?B?QnJhbmRoYcO8cw==?= <heather@brandhaus8.com>`. The quotes go: RFC 2047
+ * section 5 forbids an encoded-word inside a quoted-string, so the encoded-word
+ * replaces the quoted-string instead of sitting in it.
+ */
+function encodeMailbox(mailbox: string): string {
+  const m = /^(.*)<([^<>]*)>\s*$/.exec(mailbox);
+  // A bare addr-spec has no display name, so nothing to encode.
+  if (!m) return mailbox;
+  const rawName = m[1].trim();
+  const spec = m[2].trim();
+  if (!rawName) return `<${spec}>`;
+  const name = /^".*"$/.test(rawName) ? rawName.slice(1, -1).replace(/\\(.)/g, '$1') : rawName;
+  if (!NON_ASCII.test(name)) {
+    return `${nameNeedsQuoting(name) ? quoteName(name) : name} <${spec}>`;
+  }
+  return `${toEncodedWords(name).join(FOLD)} <${spec}>`;
+}
+
+/**
+ * Encode an address header (From/To/Cc/Bcc) per RFC 2047.
+ *
+ * **Only display names may be encoded; every address stays literal ASCII.**
+ * Encoding the whole value as one word hides the addr-spec inside base64, Gmail
+ * finds no address and rejects the message with "Invalid To header". This is the
+ * same rule In-Reply-To and References follow below.
+ */
+export function encodeAddressHeader(value: string): string {
+  return splitAddressList(sanitizeHeader(value)).map(encodeMailbox).join(', ');
 }
 
 /** Wrap base64 at 76 chars, as RFC 2045 requires. */
@@ -135,15 +252,17 @@ export interface MimeMessage {
  */
 export function buildMimeMessage(msg: MimeMessage): Buffer {
   const headers: string[] = [];
-  const add = (name: string, value?: string) => {
-    if (value) headers.push(`${name}: ${encodeHeaderValue(value)}`);
+  // Address headers encode per mailbox (display name only); Subject is
+  // unstructured text, where encoding the whole value is correct.
+  const addAddress = (name: string, value?: string) => {
+    if (value) headers.push(`${name}: ${encodeAddressHeader(value)}`);
   };
 
-  add('From', msg.from);
-  add('To', msg.to);
-  add('Cc', msg.cc);
-  add('Bcc', msg.bcc);
-  add('Subject', msg.subject);
+  addAddress('From', msg.from);
+  addAddress('To', msg.to);
+  addAddress('Cc', msg.cc);
+  addAddress('Bcc', msg.bcc);
+  if (msg.subject) headers.push(`Subject: ${encodeUnstructuredHeader(msg.subject)}`);
   // Message-ID / References must NOT be RFC-2047 encoded — they are addr-spec
   // tokens, not display text. Sanitize only.
   if (msg.inReplyTo) headers.push(`In-Reply-To: ${sanitizeHeader(msg.inReplyTo)}`);
